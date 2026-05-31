@@ -199,6 +199,30 @@ PHASE_SEEDS: dict[str, dict] = {
             "# Pipeline composition:\nif not input_guardrail(user_input)['safe']: return safe_error_response\ncontext = memory.recall(user_input) + rag.retrieve(user_input)\nresponse = specialist_agent(user_input, context)\nif not output_guardrail(response)['safe']: return safe_error_response",
         ],
     },
+    "10": {
+        "title": "Phase 10 — Frameworks Layer",
+        "icon": "🕸️",
+        "status": "complete",
+        "concepts": [
+            "LangGraph StateGraph formalises Phase 2 workflow patterns: your manual result-passing becomes typed shared State, your for-loop becomes edges, your if/else routing becomes conditional edges",
+            "LangGraph nodes are plain Python functions that receive the current State and return an updated State — the graph engine handles execution order and streaming",
+            "A LangGraph cycle (generate node → evaluate node → conditional back-edge) IS the Evaluator-Optimizer loop — same iteration logic, expressed as a graph instead of a while-loop",
+            "create_react_agent() replaces the manual Think→Act→Observe while-loop; the agent node and tools node cycle automatically until the LLM produces no more tool calls",
+            "interrupt_before=['node_name'] is HITL for free: the graph freezes before executing the named node, allowing human review before resuming with invoke(None, config)",
+            "A checkpointer (e.g. MemorySaver) persists graph state across turns and interrupts — replacing manual session state management without changing agent logic",
+            "recursion_limit on graph.compile() replaces the manual MAX_ITER guard — it is the framework's name for the same safety constraint you built by hand",
+            "LangSmith auto-traces every LangChain/LangGraph call when LANGCHAIN_TRACING_V2=true — the same spans (latency, tokens, cost, tool calls) your manual TraceCollector captured, with zero instrumentation code",
+            "LangSmith's evaluate() is the Phase 4d eval loop automated: it runs your agent over a golden dataset, scores each answer with an LLM-as-Judge, aggregates pass rate, and compares across versions",
+            "LCEL's pipe operator (prompt | llm | parser) is Prompt Chaining expressed as composition — the same left-to-right data flow as your Phase 2a manual chain, with streaming and batching added",
+            "RunnableWithMessageHistory wraps any LCEL chain with automatic conversation history management — it builds and passes the history list that you maintained manually in Phase 1b",
+            "A LangChain retrieval chain (retriever | prompt | llm | parser) is the Phase 5a RAG pipeline as four composable components — the cosine similarity search happens inside the retriever, not in your code",
+        ],
+        "snippets": [
+            "# LangGraph: manual Phase 2 chaining vs StateGraph\n# Manual: out2 = llm(prompt + out1)\n# LangGraph: graph.add_node('B', fn_B); graph.add_edge('A', 'B')  — state flows automatically",
+            "# LangGraph HITL: 40 lines → 2\nagent = create_react_agent(llm, tools, checkpointer=MemorySaver(), interrupt_before=['tools'])\nagent.invoke(None, config)  # resume after human review",
+            "# LCEL RAG chain: Phase 5a pipeline as 4 components\nchain = {'context': retriever, 'question': lambda x: x} | prompt | llm | StrOutputParser()",
+        ],
+    },
 }
 
 # ---------------------------------------------------------------------------
