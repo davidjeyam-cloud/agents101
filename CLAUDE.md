@@ -338,10 +338,10 @@ docs: <what doc was updated>                    ← docs only
 ### Phase 10 — Frameworks Layer  (after all patterns mastered)
 | Page file | Module | Status |
 |---|---|---|
-| `06a_LangGraph_Workflows.py` | LangGraph: workflows as state graphs | 🔜 |
-| `06b_LangGraph_Agents.py` | LangGraph: agents, HITL, streaming | 🔜 |
-| `06c_LangSmith.py` | LangSmith: tracing & observability | 🔜 |
-| `06d_LangChain.py` | LangChain: tools, memory, document loaders | 🔜 |
+| `06a_LangGraph_Workflows.py` | LangGraph: Phase 2 workflow patterns as StateGraph — typed state, streaming, persistence | ✅ Complete |
+| `06b_LangGraph_Agents.py` | LangGraph: Phase 3 ReAct/Reflection/Planning + Phase 4 HITL via interrupt_before | ✅ Complete |
+| `06c_LangSmith.py` | LangSmith: Phase 7 observability automated — auto-trace, datasets, eval runs | ✅ Complete |
+| `06d_LangChain.py` | LangChain LCEL: Phase 1 memory + Phase 2a chaining + Phase 5 RAG as pipe syntax | ✅ Complete |
 | `06e_GoogleADK.py` | Google ADK: multi-agent (sequential/parallel/loop) | 🔜 |
 | `06f_Framework_Compare.py` | Framework comparison: LangGraph vs ADK vs raw SDK | 🔜 |
 
