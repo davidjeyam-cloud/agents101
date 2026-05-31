@@ -3,7 +3,8 @@
 ## Project
 Hands-on learning of agentic AI architecture patterns.
 
-Remote: https://github.com/davidjeyam-cloud/claudecodeproject.git
+Remote: https://github.com/davidjeyam-cloud/agents101.git
+Push script: `.\push.ps1 "message"` — stages app.py, pages/, utils/, docs/, AGENTS.md, CLAUDE.md and pushes in one step.
 
 ## Course Philosophy — Learning Sequence
 ```
@@ -208,6 +209,57 @@ with st.expander("🔬 Execution Trace — exact prompts and raw responses"):
 | `get_public_holidays(code, year)` | Nager Date API | Holiday list by country code |
 | `get_random_joke()` | Official Joke API | Joke — used as no-tool fallback |
 
+## Commit Baseline — Checklist Before Every Push
+
+Run this checklist before each `.\push.ps1` or `git push`. Every item must pass.
+
+### 1. Syntax — no broken pages
+```powershell
+cd c:\Users\abc\devtools\_agents101
+.venv\Scripts\python.exe -m py_compile pages/*.py utils/*.py app.py
+# No output = all files parse correctly
+```
+
+### 2. App starts clean
+```powershell
+# Streamlit must reach the home page without a red error banner
+.venv\Scripts\python.exe -m streamlit run app.py --server.headless true
+# Open http://localhost:8501 — check Home page loads
+```
+
+### 3. New page checklist (only when a new page was added)
+- [ ] Added to `app.py` navigation under the correct phase group
+- [ ] `st.set_page_config(...)` is the FIRST call
+- [ ] Diagram shown before any interactive section (`st.image(diagram_Xn(), ...)`)
+- [ ] `📖 What is X` concept expander present
+- [ ] `📐 Core Code Pattern` expander with `st.code(...)` present
+- [ ] `🔬 Execution Trace` expander present for every LLM call
+- [ ] `### What's next` footer points to the correct next phase
+- [ ] `automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)` set if tools used
+- [ ] Phase Status table below updated from 🔜 to ✅ Complete
+
+### 4. Documentation sync (when a phase completes)
+- [ ] Phase Status table below updated to ✅ Complete
+- [ ] `pages/00a_Home.py` — `complete =` count incremented, phase card updated
+- [ ] `AGENTS.md` Phase Map updated if status changed
+- [ ] `docs/ARCHITECTURE.md` Phase Map table updated
+
+### 5. Commit message convention
+```
+feat: Phase Xn — <page title> complete          ← new page done
+fix: <short description of what broke>          ← bug fix
+chore: <tooling, deps, config change>           ← non-code
+docs: <what doc was updated>                    ← docs only
+```
+
+### 6. Never commit
+- `.env` (contains GEMINI_API_KEY)
+- `.venv/` directory
+- `__pycache__/` directories
+- Any file with a real API key, password, or token
+
+---
+
 ## Phase Status
 <!-- RESTRUCTURED 2026-05-30: old single Phase 3 split into Phases 3-7 by concern -->
 <!-- File names unchanged; sidebar display titles and groupings updated in app.py -->
@@ -238,8 +290,9 @@ with st.expander("🔬 Execution Trace — exact prompts and raw responses"):
 |---|---|---|
 | `03_Agents.py` | ReAct Agent — Think→Act→Observe loop | ✅ Complete |
 | `03f_Reflection.py` | Reflection Agent — Andrew Ng Pattern 1: self-critique loop | ✅ Complete |
-| `03f2_Planning.py` | Planning Agent — Andrew Ng Pattern 3: Plan-and-Execute | 🔜 **PRIORITY** |
-| `03g2_CodeExec.py` | Code Execution Tool — Andrew Ng Pattern 2 extension: Python REPL | 🔜 |
+| `03f2_Planning.py` | Planning Agent — Andrew Ng Pattern 3: Plan-and-Execute | ✅ Complete |
+| `03g2_CodeExec.py` | Code Execution Tool — Andrew Ng Pattern 2 extension: Python REPL | ✅ Complete |
+| `03p_PatternCompare.py` | Pattern Decision Guide — all 9 patterns compared (3e) | ✅ Complete |
 
 ### Phase 4 — Trust & Safety  (quality gates and human oversight)
 | Page file | Module | Status |
