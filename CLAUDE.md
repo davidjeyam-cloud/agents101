@@ -238,7 +238,17 @@ cd c:\Users\abc\devtools\_agents101
 - [ ] `automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)` set if tools used
 - [ ] Phase Status table below updated from 🔜 to ✅ Complete
 
-### 4. Documentation sync (when a phase completes)
+### 4. Quiz sync (MANDATORY when any phase is built or completed)
+- [ ] `utils/quiz.py` — add a `"<phase_key>"` entry to `PHASE_SEEDS` with `status: "complete"`
+- [ ] Entry must have: `title`, `icon`, `status`, `concepts` (8–12 items), `snippets` (3 items)
+- [ ] Concepts must be **LLM-agnostic** — no model names, SDK names, or vendor-specific API calls
+- [ ] Concepts must test reasoning / trade-offs / failure modes — not surface recall
+- [ ] After adding, verify: `python -c "from utils.quiz import PHASE_SEEDS; print(list(PHASE_SEEDS.keys()))"`
+
+**Rule: no phase is "done" until the quiz seed bank includes it.**
+The quiz is the learner's self-assessment tool — a phase without quiz coverage is incomplete.
+
+### 5. Documentation sync (when a phase completes)
 - [ ] Phase Status table below updated to ✅ Complete
 - [ ] `pages/00a_Home.py` — `complete =` count incremented, phase card updated
 - [ ] `AGENTS.md` Phase Map updated if status changed
