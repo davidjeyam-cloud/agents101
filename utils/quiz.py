@@ -24,19 +24,19 @@ PHASE_SEEDS: dict[str, dict] = {
         "icon": "🏗️",
         "status": "complete",
         "concepts": [
-            "Anthropic's definition of an Agent: LLM + Tools + Control Flow that directs itself using its own outputs",
-            "Difference between deterministic Workflow (fixed steps) and dynamic Agent (LLM decides next step)",
-            "Agent components: Perception (input), Memory (context/vector store), Action (tools/output)",
-            "Why frameworks (LangChain, LangGraph) are learned LAST — API-first builds deeper understanding and debugging skill",
-            "google-genai SDK is the correct import; google-generativeai is deprecated and must never be used",
-            "Model rule: ALWAYS use gemini-2.5-flash or above; NEVER use 1.5-flash, 2.0-flash, or any sub-2.5 model",
-            "GEMINI_API_KEY stored in .env file — never committed to git",
-            "Streamlit multi-page app uses st.navigation() with grouped phase sections in the sidebar",
+            "Anthropic's definition of an Agent: an LLM that uses Tools and Control Flow to direct its OWN next actions based on its OWN outputs",
+            "Workflow vs Agent: a Workflow has a fixed, predetermined sequence of steps; an Agent's path is decided dynamically by the LLM at each step",
+            "Agent components: Perception (inputs from environment), Memory (in-context + persistent), Action (tool calls + final output)",
+            "Why learning frameworks (LangChain, LangGraph, ADK) LAST matters: framework abstractions hide the underlying mechanics; devs who build raw first can debug frameworks; the reverse is much harder",
+            "The LLM is the reasoning engine — it can be swapped (GPT-4, Claude, Gemini, Llama) without changing the agent architecture",
+            "API keys and secrets must never be committed to source control — always use environment variables or a secrets manager",
+            "Agentic AI expands LLM capability along two axes: memory (what it knows) and actions (what it can do)",
+            "The minimum viable agent: an LLM that receives a task, decides to call a tool, observes the result, and decides what to do next",
         ],
         "snippets": [
-            "from google import genai  # correct; NOT: import google.generativeai",
-            "client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))",
-            "response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)",
+            "# Workflow: fixed steps — step1() → step2(result1) → step3(result2)",
+            "# Agent: LLM decides — while not done: action = llm(history); result = execute(action); history += result",
+            "# Agent self-direction: next_action = llm(task + all_previous_results)  # owns its own loop",
         ],
     },
     "1": {
@@ -44,19 +44,19 @@ PHASE_SEEDS: dict[str, dict] = {
         "icon": "🧠",
         "status": "complete",
         "concepts": [
-            "Plain LLM: single stateless generate_content call — no memory between turns",
-            "Memory augmentation: full conversation history passed as list of role/parts dicts on EVERY call",
-            "History format: parts MUST be a list of dicts [{'text': '...'}], NOT a plain string — SDK validation error otherwise",
-            "AutomaticFunctionCallingConfig(disable=True): REQUIRED to see function_calls in response",
-            "Without disable=True: tools execute silently inside the SDK, response.function_calls is None — the bug is invisible",
-            "Mini Agent: developer-controlled Think→Act→Observe loop — every step is explicit and inspectable",
-            "Progression of agency: Plain LLM → +Memory → +Tools → Mini Agent (full loop)",
-            "What makes something an Agent: it uses its OWN outputs to direct its NEXT action (self-direction)",
+            "Plain LLM: single stateless call — no memory, no tools, no awareness of prior turns",
+            "Memory augmentation: full conversation history (role + content pairs) passed on EVERY call — the LLM has no built-in memory; you reconstruct it each time",
+            "Tool use requires manual orchestration: after the LLM requests a tool call, you execute it and send the result back in the next message",
+            "Automatic tool execution is a hidden risk: when the SDK executes tools silently, you lose visibility — you cannot log, audit, or inspect what ran",
+            "Mini Agent loop: developer controls Think → Act (tool call) → Observe (tool result) → repeat — every step is explicit and inspectable",
+            "Progression of agency: Plain LLM (stateless) → +Memory (stateful) → +Tools (actions) → Mini Agent (self-directed loop)",
+            "What makes something an Agent: the LLM uses its OWN output from one step as the input driving its NEXT step — it self-directs",
+            "The difference between giving an LLM tools vs building an agent: tools alone don't make an agent; the agent loop (self-direction) does",
         ],
         "snippets": [
-            "automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)",
-            "history = [{'role': 'user', 'parts': [{'text': msg}]}]  # parts = list of dicts",
-            "if response.function_calls:  # manually detect tools, execute, send result back",
+            "# Memory: always pass full history — LLM has no state of its own\nhistory.append({'role': 'user', 'content': msg}); response = llm(history)",
+            "# Manual tool loop — visibility by design:\nif response.tool_calls:\n    result = execute_tool(response.tool_calls[0])\n    history.append({'role': 'tool', 'content': result})",
+            "# Agent loop guard:\nwhile iteration < MAX_ITER:\n    response = llm(history)\n    if not response.tool_calls: break  # LLM decided it's done",
         ],
     },
     "2": {
@@ -64,20 +64,19 @@ PHASE_SEEDS: dict[str, dict] = {
         "icon": "🔀",
         "status": "complete",
         "concepts": [
-            "Prompt Chaining: output of step N injected into step N+1 — sequential, deterministic pipeline",
-            "Routing: classify intent first, then route to the right specialized handler (traffic cop pattern)",
-            "Parallelization variants: parallel sections (speed, independent subtasks) vs voting (accuracy via consensus)",
-            "Orchestrator-Workers: orchestrator LLM decomposes task dynamically, assigns pieces to worker LLMs",
-            "Evaluator-Optimizer: generator produces draft, evaluator scores it, loop continues until threshold met",
-            "Key distinction — Workflow vs Agent: workflow = fixed predetermined flow; agent = LLM decides each step",
-            "Orchestrator does NOT execute tasks itself — it only plans and delegates to workers",
-            "When to choose each: chaining=fixed sequence, routing=specialization, parallel=independence, orchestrator=unknown complexity",
+            "Prompt Chaining: output of step N is injected as input to step N+1 — deterministic, sequential, lowest cost, error propagates silently",
+            "Routing: classify input first, then dispatch to a specialised handler — 2 LLM calls total; misclassification is the primary failure mode",
+            "Parallelization: fan-out to N independent workers simultaneously; two variants — parallel sections (speed) and voting (accuracy via consensus)",
+            "Orchestrator-Workers: orchestrator LLM decomposes task dynamically and assigns subtasks to specialist workers; orchestrator does NOT execute — it only delegates",
+            "Evaluator-Optimizer: generator produces output, evaluator scores it, loop repeats until score meets threshold — generator and evaluator can collude if same model",
+            "Workflow vs Agent distinction: in all 5 workflow patterns, the developer defines WHEN each LLM call happens; in agents the LLM decides",
+            "When Prompt Chaining beats ReAct: when every step is predictable, chaining is cheaper, faster, and more auditable than an open-ended agent loop",
+            "Parallelization's aggregation problem: when N workers return contradictory answers, you need an explicit tiebreaker rule before voting works",
         ],
         "snippets": [
             "# Chaining: out1 = llm(step1_prompt); out2 = llm(step2_prompt + out1)",
             "# Routing: route = classify(input); response = HANDLERS[route](input)",
-            "# Parallel: futures = [executor.submit(llm, p) for p in prompts]",
-            "# Eval loop: while score < threshold: draft = generate(prompt); score = evaluate(draft)",
+            "# Eval-Optimizer loop:\nwhile score < threshold and i < MAX_ITER:\n    draft = generate(prompt); score = evaluate(draft); i += 1",
         ],
     },
     "3": {
@@ -85,20 +84,19 @@ PHASE_SEEDS: dict[str, dict] = {
         "icon": "🤖",
         "status": "complete",
         "concepts": [
-            "ReAct = Reason + Act: Think→Act→Observe loop, continues until LLM decides task is complete (no function_calls)",
-            "Observe step is critical: tool result fed back to LLM as new context for the next reasoning step",
-            "Reflection: LLM critiques its OWN previous output and self-rewrites — same model, self-feedback loop",
-            "Reflection vs LLM-as-Judge: Reflection = self-critique (one model prompts itself); Judge = independent evaluator (separate neutral perspective)",
-            "Planning Agent: explicit structured JSON plan created BEFORE any execution begins — Plan→Execute→Synthesize",
-            "Planning vs ReAct: Planning commits upfront (predictable, auditable); ReAct decides dynamically (flexible, adaptive)",
-            "Code Execution: Python exec() in sandboxed namespace, contextlib.redirect_stdout captures print output",
-            "Max iterations guard (while i < MAX_ITER) prevents infinite loops in ALL agentic patterns",
+            "ReAct (Reason + Act): Think → Act (tool) → Observe (result) → repeat; the LLM decides when it has enough to answer and stops calling tools",
+            "ReAct's key weakness: no upfront plan means the agent can take inefficient or circular paths on complex multi-step tasks",
+            "Reflection: LLM critiques its OWN previous output and self-rewrites — same model, self-feedback loop; diminishing returns after 2-3 cycles",
+            "Reflection vs LLM-as-Judge: Reflection is self-critique (one model); Judge is an independent evaluator (separate neutral perspective with no stake in the original output)",
+            "Planning Agent (Plan-and-Execute): explicit structured plan committed BEFORE any tool is called; each step executed with full plan context",
+            "Planning vs ReAct trade-off: Planning is auditable and efficient for predictable tasks; ReAct is flexible but expensive for open-ended tasks",
+            "Code Execution as a tool: the agent writes code, a sandboxed interpreter runs it, the stdout/result is fed back — enables deterministic computation",
+            "Max iterations guard is mandatory in every agentic loop — without it, a stuck agent will loop until the API budget runs out",
         ],
         "snippets": [
-            "while iteration < MAX_ITER:  # always guard agentic loops",
-            "if not response.function_calls: break  # LLM decided no more tools needed — task done",
-            "plan = json.loads(llm(plan_prompt))  # get structured JSON plan BEFORE executing any step",
-            "buf = io.StringIO()\nwith contextlib.redirect_stdout(buf):\n    exec(code, sandbox)\noutput = buf.getvalue()",
+            "# ReAct loop — agent self-directs:\nwhile iteration < MAX_ITER:\n    response = llm(history)\n    if not response.tool_calls: break",
+            "# Planning: commit plan first, then execute\nplan = llm_json(plan_prompt)  # structured plan BEFORE any tool call\nfor step in plan['steps']: result = execute_step(step)",
+            "# Reflection loop:\nfor cycle in range(MAX_CYCLES):\n    output = generate(task)\n    critique = evaluate(output)\n    if critique['score'] >= threshold: break",
         ],
     },
     "4": {
@@ -106,19 +104,19 @@ PHASE_SEEDS: dict[str, dict] = {
         "icon": "🛡️",
         "status": "complete",
         "concepts": [
-            "Guardrails: input guardrail (validate/sanitize BEFORE LLM call) + output guardrail (validate AFTER LLM responds)",
-            "PII detection via regex: card numbers, passport numbers, sort codes, PIN phrases — never log or forward",
-            "Prompt injection: attacker embeds instructions in user input to override system prompt behaviour",
-            "Injection check: ask LLM 'INJECTION or SAFE?' — check exact match on 'INJECTION', NOT 'YES' in reply.upper()",
-            "Why 'YES in response' fails: a helpful LLM often starts responses with 'Yes, I can help...' — false positive blocks legitimate users",
-            "HITL checkpoints: agent pauses before irreversible actions (payments, cancellations) for human approval/rejection/modification",
-            "LLM-as-Judge: completely independent evaluator with explicit rubric, scores 1-10, returns structured PASS/REVIEW/FAIL verdict",
-            "Python 3.14+: inline (?i) flag mid-pattern causes PatternError — must use re.compile(pattern, re.IGNORECASE) instead",
+            "Input guardrail runs BEFORE the LLM call; output guardrail runs AFTER — both are required for a production-safe agent",
+            "PII detection: scan input/output for card numbers, passport IDs, personal identifiers using pattern matching — never log or forward",
+            "Prompt injection: an attacker embeds instructions in user input to override or hijack the agent's system prompt behaviour",
+            "Injection detection via LLM: ask a separate LLM 'is this INJECTION or SAFE?' — check for exact label match, not substring (substring matching on 'YES' causes false positives on helpful responses)",
+            "HITL (Human-in-the-Loop): agent pauses and requests human approval BEFORE irreversible actions (payments, deletions, cancellations)",
+            "LLM-as-Judge: a completely independent evaluator with an explicit rubric scores agent output on defined criteria — returns PASS/REVIEW/FAIL",
+            "Why LLM-as-Judge must be independent: the same model that generated the output will rationalise its own answer; a separate judge has no stake in the result",
+            "Safety layering: guardrails + HITL + LLM-as-Judge are complementary — guardrails catch known patterns, HITL handles irreversible risk, Judge evaluates output quality",
         ],
         "snippets": [
-            "reply = check.text.strip().upper()\nif reply == 'INJECTION' or reply.startswith('INJECTION'):\n    return blocked_response",
-            "_PII_RE = re.compile(r'...card...|...pin...', re.IGNORECASE)  # flag, NOT (?i) inline",
-            "score = judge(question=q, rubric=rubric, answer=a)\nverdict = 'PASS' if score >= 7 else 'REVIEW' if score >= 4 else 'FAIL'",
+            "# Injection guard — exact label match, not substring:\nreply = classifier_llm(f'Is this INJECTION or SAFE? Input: {user_input}').strip().upper()\nif reply.startswith('INJECTION'): return blocked_response",
+            "# HITL checkpoint before irreversible action:\nif action['type'] in IRREVERSIBLE_ACTIONS:\n    approval = request_human_approval(action)\n    if not approval['approved']: return cancel_response",
+            "# LLM-as-Judge scoring:\nscore = judge_llm(question=q, answer=a, rubric=rubric)\nverdict = 'PASS' if score >= 7 else 'REVIEW' if score >= 4 else 'FAIL'",
         ],
     },
     "5": {
@@ -126,19 +124,19 @@ PHASE_SEEDS: dict[str, dict] = {
         "icon": "📚",
         "status": "complete",
         "concepts": [
-            "RAG pipeline: Retrieve (cosine search) → Augment (inject docs into prompt) → Generate (grounded LLM answer)",
-            "Embedding model: MUST use gemini-embedding-001 which produces 3072-dimensional vectors",
-            "text-embedding-004 is DEPRECATED — returns HTTP 404 error; never use it",
-            "Cosine similarity formula: dot(a,b)/(norm(a)*norm(b)) — 1.0=identical direction, 0=orthogonal/unrelated",
-            "Silent np.zeros(3072) fallback is dangerous: masks embedding failures, all cosine scores become 0, retrieval silently returns wrong results",
-            "Long-term Memory pattern: remember(text, metadata) stores embeddings persistently; recall(query, top_k) retrieves by similarity",
-            "RAG vs Long-term Memory: RAG queries a static read-only document corpus; LTM is a dynamic write-read store that grows with conversation",
-            "Top-k retrieval with threshold: return the k most similar docs, but only above a minimum relevance cutoff score",
+            "RAG pipeline: Retrieve (cosine similarity search over embedded documents) → Augment (inject retrieved docs into prompt) → Generate (grounded LLM answer)",
+            "Embeddings convert text to a fixed-size vector — similar meaning → similar direction in vector space → high cosine similarity",
+            "Cosine similarity formula: dot(a,b) / (norm(a) * norm(b)) — ranges 1.0 (identical direction) to 0 (orthogonal/unrelated)",
+            "Silent zero-vector fallback is a critical failure: if an embedding call fails and you substitute zeros, every cosine score becomes 0 — retrieval silently returns wrong results with no error",
+            "RAG vs Long-term Memory: RAG queries a static read-only document corpus; Long-term Memory is a dynamic write-read store that grows with agent experience",
+            "Top-k retrieval with relevance threshold: return the k most similar documents, but only those scoring above a minimum cutoff — prevents low-quality context injection",
+            "Grounding principle: an agent grounded in retrieved facts hallucinates less than one relying on training knowledge alone — RAG is the primary anti-hallucination technique",
+            "Chunking strategy matters: overly long chunks dilute relevance scores; overly short chunks lose context — chunk size is a tunable parameter",
         ],
         "snippets": [
-            "result = client.models.embed_content(\n    model='gemini-embedding-001', contents=text,\n    config=types.EmbedContentConfig(task_type='RETRIEVAL_DOCUMENT'))",
-            "emb = np.array(result.embeddings[0].values)  # shape (3072,) — NOT (768,)",
-            "sim = np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))  # cosine similarity",
+            "# Embed and store:\nvector = embed(text)  # any embedding model: OpenAI, Gemini, Cohere, etc.\nvector_store.add(id=doc_id, vector=vector, metadata=doc)",
+            "# Retrieve by cosine similarity:\nquery_vec = embed(query)\nscores = [(doc, cosine(query_vec, doc.vector)) for doc in vector_store]\ntop_k = sorted(scores, key=lambda x: -x[1])[:k]",
+            "# Augment prompt with retrieved context:\ncontext = '\\n'.join(doc.text for doc, score in top_k if score > THRESHOLD)\nfinal_prompt = f'Context:\\n{context}\\n\\nQuestion: {query}'",
         ],
     },
     "6": {
@@ -146,19 +144,19 @@ PHASE_SEEDS: dict[str, dict] = {
         "icon": "🤝",
         "status": "complete",
         "concepts": [
-            "Multi-Agent: root orchestrator delegates to specialist sub-agents; sub-agents ARE tools from root's perspective",
-            "Parallel multi-agent: ThreadPoolExecutor runs multiple sub-agents simultaneously; no blocking between specialists",
-            "MCP = Model Context Protocol (Anthropic, Nov 2024): standard protocol for agent-to-resource connections (tools, data sources)",
-            "MCP protocol flow: initialize → list_tools (server returns schemas) → call_tool (JSON-RPC 2.0 format)",
-            "A2A = Agent-to-Agent Protocol (Google, Apr 2025): standard for agent-to-agent task delegation",
-            "A2A Agent Card: JSON discovery document at /.well-known/agent.json describing agent capabilities",
-            "A2A task lifecycle: submitted → working → completed (or failed) with structured JSON messages at each step",
-            "MCP vs A2A are COMPLEMENTARY: MCP = agent connects to tools/resources; A2A = agent delegates to another agent",
+            "Multi-Agent architecture: a root orchestrator delegates to specialist sub-agents; from the orchestrator's perspective, each sub-agent is just a callable tool",
+            "Parallel multi-agent: independent specialist agents run concurrently — no blocking between them; results aggregated after all complete",
+            "MCP (Model Context Protocol, Anthropic 2024): standard protocol for agent-to-RESOURCE connections — tools, databases, APIs; solves the N×M integration problem",
+            "MCP flow: agent initialises connection → lists available tools (server returns schemas) → calls tool by name with arguments → receives structured result",
+            "A2A (Agent-to-Agent Protocol, Google 2025): standard for agent-to-AGENT task delegation — one agent submits a task to another agent as a peer",
+            "A2A Agent Card: a JSON discovery document at a well-known URL describing an agent's capabilities, skills, and authentication requirements",
+            "MCP vs A2A are complementary, not competing: MCP = agent connects to tools/data; A2A = agent delegates to another agent — a production system uses both",
+            "Trust boundary in multi-agent systems: a sub-agent must validate inputs from an orchestrator just as it would from a human — orchestrators can be compromised",
         ],
         "snippets": [
-            "# MCP: server.list_tools() → [{name, description, inputSchema}]\n# client calls: server.call_tool(name, arguments)",
-            "# A2A: card = get('/.well-known/agent.json').json()\n# task = submit_task(card, input_text)",
-            "with ThreadPoolExecutor() as ex:\n    futures = {name: ex.submit(agent_fn, task) for name, agent_fn in agents.items()}",
+            "# Sub-agent as tool — orchestrator's view:\ndef research_agent(query: str) -> str: ...  # specialist wrapped as callable\norchestrator_tools = [research_agent, write_agent, review_agent]",
+            "# MCP: agent discovers tools at runtime — not hardcoded\ntools = mcp_client.list_tools()  # [{name, description, inputSchema}]\nresult = mcp_client.call_tool(name='search_docs', arguments={'query': q})",
+            "# Parallel sub-agents:\nwith ThreadPoolExecutor() as ex:\n    futures = {name: ex.submit(agent_fn, task) for name, agent_fn in specialists.items()}\n    results = {name: f.result() for name, f in futures.items()}",
         ],
     },
     "7": {
@@ -166,19 +164,19 @@ PHASE_SEEDS: dict[str, dict] = {
         "icon": "🔭",
         "status": "complete",
         "concepts": [
-            "Observability: trace every LLM call with span metadata — timestamp, latency_ms, input_tokens, output_tokens, estimated cost",
-            "TraceCollector wraps _call() to record spans automatically without changing any business logic code",
-            "Token counting: client.models.count_tokens() gives EXACT count BEFORE sending — enables budget enforcement",
-            "Prompt caching: repeated system prompt prefix cached by API — 60-80% cost savings on repeated calls with same context",
-            "Model routing: Flash-Lite for fast classification/routing, Flash for standard generation, Pro for complex multi-step reasoning",
-            "5 error taxonomy: Hallucination, Tool Loop, Context Overflow, Prompt Injection, Logic Error — each needs a different fix",
-            "Tool Loop detection: count calls per tool; if same tool called 3+ times with same arguments → break with explicit error",
-            "LLM-as-Judge auto-diagnoses errors by comparing broken agent response vs fixed response against a rubric",
+            "Observability: every LLM call should emit a structured trace span — timestamp, latency, input tokens, output tokens, estimated cost, tool calls made",
+            "Wrapping LLM calls in a tracer decorator adds observability without changing business logic — separation of concerns",
+            "Token counting BEFORE sending enables hard budget enforcement; counting after is too late to prevent overruns",
+            "Prompt caching: if the system prompt is repeated across calls, the API can cache the prefix — typical savings 60-80% on cached tokens",
+            "Model routing by complexity: route simple classification/routing tasks to a cheaper fast model; reserve the powerful model for complex multi-step reasoning",
+            "Five production error types: Hallucination, Tool Loop, Context Overflow, Prompt Injection, Logic Error — each has a different root cause and different fix",
+            "Tool loop detection: if the same tool is called with the same arguments N times without progress, the agent is stuck — break with an explicit error, do not let it exhaust the budget",
+            "LLM-as-Judge for automated error diagnosis: compare broken vs fixed agent responses against a rubric to identify which error category applies",
         ],
         "snippets": [
-            "token_count = client.models.count_tokens(model=MODEL, contents=prompt).total_tokens",
-            "model = 'gemini-2.5-flash-lite' if complexity == 'simple' else 'gemini-2.5-flash'",
-            "if tool_call_counts[tool_name] > MAX_TOOL_CALLS:\n    raise RuntimeError(f'Tool loop: {tool_name} called too many times')",
+            "# Observability decorator — wraps any LLM call:\n@trace_span\ndef call_llm(prompt): return llm(prompt)  # span captures latency + tokens automatically",
+            "# Model routing by task complexity:\nmodel = cheap_fast_model if task_type in SIMPLE_TASKS else powerful_model",
+            "# Tool loop guard:\nif tool_call_counts[tool_name] >= MAX_TOOL_CALLS:\n    raise RuntimeError(f'Tool loop detected: {tool_name} called {MAX_TOOL_CALLS}+ times')",
         ],
     },
     "8": {
@@ -186,19 +184,19 @@ PHASE_SEEDS: dict[str, dict] = {
         "icon": "🎧",
         "status": "complete",
         "concepts": [
-            "Customer Support pipeline: Guardrails → Memory → RAG → ReAct → LLM-Judge → HITL → Observability — all patterns combined",
-            "Elite Multi-Agent System: all 13 agentic patterns active simultaneously with MCP servers + A2A specialist routing",
-            "MCP Policy Server grounds ALL specialist answers: specialists MUST call search_policies FIRST before any response",
-            "Specialist routing: banking/fraud/international/complaints — route by detected intent, not simple keyword matching",
-            "Refund queries MUST route to banking specialist (has get_fees + search_policies tools), NOT to complaints specialist",
-            "Production injection guard: check reply.startswith('INJECTION'), never 'YES' in text — prevents false positives on legitimate queries",
-            "Each specialist has its own tailored tool map matching their domain responsibilities",
-            "Grounding principle: never answer from model training memory alone when a policy/data MCP server is available",
+            "Production agent pipeline composes multiple patterns: Guardrails → Memory → RAG → ReAct → LLM-Judge → HITL → Observability — each layer has a distinct responsibility",
+            "Specialist routing by intent (not keyword): a classifier LLM determines which specialist agent handles the request — keyword matching is brittle for natural language",
+            "Grounding mandate: in a domain-specific agent, every answer must be grounded in retrieved policy/data — the LLM must call the knowledge source FIRST, not answer from training memory",
+            "Each specialist agent has its own system prompt, its own tool set, and its own trust boundary — not one generic agent doing everything",
+            "Injection guard in production: check for exact label ('INJECTION') not substring — 'YES' substring matching produces false positives on legitimate user responses",
+            "HITL position in pipeline: placed AFTER the agent computes an action plan but BEFORE irreversible execution — this is the only position that is both informed and preventative",
+            "Observability in production: every span should include which specialist handled the request, how many tool calls were made, and the LLM-Judge verdict",
+            "Failure gracefully: when a specialist fails, the pipeline should return a safe fallback response — never surface raw exception text to the end user",
         ],
         "snippets": [
-            "reply = check.text.strip().upper()\nif reply == 'INJECTION' or reply.startswith('INJECTION'):\n    return {'pass': False, 'reason': 'Injection detected'}",
-            "# System prompt rule: 'ALWAYS call search_policies FIRST for ANY question about NexaBank'",
-            "SPECIALIST_TOOL_MAP = {\n    'banking': [search_policies, get_rates, get_fees],\n    'international': [get_country_info, get_public_holidays, search_policies],\n}",
+            "# Specialist routing — intent-based, not keyword:\nspecialist = intent_classifier(user_input)  # returns 'billing' | 'technical' | 'general'\nresponse = SPECIALISTS[specialist].run(user_input, context)",
+            "# Grounding system prompt rule:\n# 'Before answering ANY question, call search_knowledge_base() first.\n#  Never answer from training memory alone when a knowledge tool is available.'",
+            "# Pipeline composition:\nif not input_guardrail(user_input)['safe']: return safe_error_response\ncontext = memory.recall(user_input) + rag.retrieve(user_input)\nresponse = specialist_agent(user_input, context)\nif not output_guardrail(response)['safe']: return safe_error_response",
         ],
     },
 }
@@ -211,6 +209,9 @@ _PROMPT_TEMPLATE = """\
 You are an expert Agentic AI examiner with deep production experience building LLM-powered systems.
 Your job is to test whether learners truly UNDERSTAND the patterns — not whether they can recite definitions.
 
+This course teaches LLM-agnostic agentic AI architecture. The patterns, principles, and trade-offs
+apply to ANY LLM (GPT-4, Claude, Gemini, Llama, Mistral — it does not matter which).
+
 Phase under examination: {phase_title}
 
 Core concepts in scope:
@@ -219,19 +220,38 @@ Core concepts in scope:
 Code patterns to draw from for snippet-based questions:
 {snippets}
 
+━━━ BANNED TOPICS — NEVER ask about these ━━━
+
+  ✗  Any specific LLM product name (Gemini, GPT-4, Claude, Flash, Pro, Llama, etc.)
+  ✗  Any specific SDK or library (google-genai, openai, anthropic, LangChain, LangGraph, etc.)
+  ✗  API key names (GEMINI_API_KEY, OPENAI_API_KEY, etc.) or environment variable specifics
+  ✗  Model version numbers (2.5-flash, gpt-4o, claude-3, etc.) or model tiers by brand name
+  ✗  Specific embedding model names or their exact vector dimensions
+  ✗  Deprecated library migrations (google-generativeai → google-genai, etc.)
+  ✗  UI framework specifics (st.session_state keys, Streamlit widget names)
+  ✗  Any question that only an engineer using one specific vendor's API could answer
+
+If a concept is vendor-specific, generalise it: "the LLM SDK" not "google-genai",
+"a fast cheap model" not "Flash-Lite", "an embedding model" not "gemini-embedding-001".
+
 ━━━ EXAMINER PHILOSOPHY ━━━
 
 NEVER write surface-level recall questions. Examples of what to AVOID:
   ✗  "What does ReAct stand for?"
-  ✗  "Which SDK should you use with Gemini?"
+  ✗  "Which SDK should you import for Gemini?"
   ✗  "What is the MCP protocol?"
+  ✗  "What vector dimension does gemini-embedding-001 return?"
 
-ALWAYS write questions that require reasoning, trade-off analysis, or failure-mode thinking. Examples of the standard to AIM FOR:
-  ✓  "Your ReAct agent calls get_account_balance() 12 times before timing out. The tool returns valid data each time. What is the most likely architectural cause, and which fix addresses the root issue?"
+ALWAYS write questions that require reasoning, trade-off analysis, or failure-mode thinking.
+Aim for the standard of an Anthropic AI or AWS AI Practitioner certification:
+  ✓  "Your ReAct agent calls get_account_balance() 12 times before timing out. The tool returns valid data each time. What is the most likely architectural cause, and which single fix addresses the root issue?"
   ✓  "A team argues that a Prompt Chain can replace a ReAct agent for their use case. Under what specific condition are they correct — and what is the single constraint that breaks that assumption?"
-  ✓  "You remove AutomaticFunctionCallingConfig(disable=True) from your agent. The agent still returns answers. Why does this appear to work, and what critical capability have you silently lost?"
+  ✓  "Your SDK is configured to execute tools automatically without exposing intermediate results. The agent still returns correct final answers. What production capability have you silently lost, and why does it matter?"
+  ✓  "An agent's RAG retrieval returns contextually irrelevant documents for every query despite high embedding coverage. The embedding calls succeed. What is the most likely root cause?"
+  ✓  "You need to build a system that answers questions about company policy documents that are updated weekly. Should you use RAG, Long-term Memory, or fine-tuning — and what is the deciding factor?"
 
-The wrong options must represent genuine misconceptions that a surface-level learner would pick — not obviously absurd answers.
+The wrong options must represent genuine misconceptions a thoughtful but surface-level learner would pick.
+They should be plausible — not obviously absurd.
 
 ━━━ QUESTION DISTRIBUTION ━━━
 
@@ -247,15 +267,16 @@ Generate exactly {n} questions with this type distribution:
 Return ONLY a valid JSON array. No markdown fences, no explanation, no commentary before or after.
 
 Each element:
-{{"q":"full question text","opts":["first choice","second choice","third choice","fourth choice"],"ans":0,"type":"scenario","explain":"2-3 sentence explanation citing the specific rule, trade-off, or failure mechanism — not just 'because it is correct'"}}
+{{"q":"full question text","opts":["first choice","second choice","third choice","fourth choice"],"ans":0,"type":"scenario","explain":"2-3 sentence explanation citing the specific concept, trade-off, or failure mechanism — not just 'because it is correct'. The explanation must be useful to a learner who got it wrong."}}
 
 Hard format rules:
 1. opts must contain exactly 4 strings
 2. CRITICAL: opts must be PLAIN TEXT — no letter prefixes like "A.", "B)", "(C)" — the UI labels them automatically
 3. ans is 0-indexed (0=first option, 1=second, 2=third, 3=fourth)
-4. explain must reference the exact concept, rule, or failure mode — no vague justifications
+4. explain must be genuinely educational — reference the exact mechanism, not just restate the answer
 5. Do not repeat the same concept across multiple questions
 6. Questions must be self-contained — include enough context that the learner does not need to look anything up
+7. FINAL CHECK before returning: scan every question and option — if any banned topic appears, rewrite it
 """
 
 
