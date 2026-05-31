@@ -270,6 +270,7 @@ docs: <what doc was updated>                    ← docs only
 | `00_Hello_Gemini.py` | Hello Gemini — API setup & verify | ✅ Complete |
 | `00c_Agent_Anatomy.py` | Agent Anatomy — component breakdown | ✅ Complete |
 | `00b_Learning_Insights.py` | Learning Insights — course philosophy | ✅ Complete |
+| `0q_Quiz_Hub.py` | Quiz Hub — dynamic MCQ for all phases, Gemini JSON mode, LLM-agnostic questions | ✅ Complete |
 
 ### Phase 1 — Augmented LLM
 | Page file | Module | Status |

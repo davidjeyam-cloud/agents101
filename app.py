@@ -65,7 +65,7 @@ pg = st.navigation({
         st.Page("pages/04b_Coding_Agent.py",      title="8b — Coding Agent 🔜"),
     ],
     "Phase 9 — Best Practices": [
-        st.Page("pages/05_Best_Practices.py", title="9 — Best Practices 🔜"),
+        st.Page("pages/05_Best_Practices.py", title="9 — Best Practices"),
     ],
     "Phase 10 — Frameworks": [
         st.Page("pages/06a_LangGraph_Workflows.py", title="10a — LangGraph Workflows 🔜"),
