@@ -32,6 +32,28 @@ st.image(diagram_langsmith(),
          caption="Phase 7 manual TraceCollector vs LangSmith auto-tracing",
          use_column_width=True)
 
+st.markdown(
+    """
+    <div style='background:#EAF4EC;border-left:5px solid #117A65;padding:16px 22px;
+    border-radius:6px;margin-bottom:18px'>
+    <span style='font-size:1.05rem;font-weight:700;color:#0E6655'>
+    🔗 Connecting to what you already know (Phase 7 — Observability &amp; Phase 4d — Eval Framework)</span><br><br>
+    <span style='color:#1C2833'>
+    In Phase 7 you wired a <code>TraceCollector</code> around every LLM call — manually recording
+    timestamps, token counts, latency, and estimated cost into a spans dictionary.
+    LangSmith is that same flight recorder, but it is built into the aircraft.
+    You set three environment variables and it records everything automatically — every prompt,
+    every response, every tool call, every token, every cost — without touching your agent code.<br><br>
+    The evaluation loop you built manually in Phase 4d (golden test set → run agent → judge each
+    answer → aggregate pass rate) is exactly what LangSmith's <code>evaluate()</code> does,
+    with version comparison and a dashboard on top.
+    Phase 7 taught you <em>why</em> this matters.  LangSmith gives you the production tool.
+    </span>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
 # ── Concept ───────────────────────────────────────────────────────────────────
 with st.expander("📖 What LangSmith is — and what it replaces from Phase 7"):
     st.markdown("""

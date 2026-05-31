@@ -28,8 +28,30 @@ st.caption(
 
 # ── Diagram ───────────────────────────────────────────────────────────────────
 st.image(diagram_langchain(),
-         caption="LangChain LCEL maps each component back to a pattern you built in Phases 1, 2, and 5",
+         caption="Each LCEL component maps directly to a phase you already completed — same concept, pipe syntax.",
          use_column_width=True)
+
+st.markdown(
+    """
+    <div style='background:#EAF4EC;border-left:5px solid #117A65;padding:16px 22px;
+    border-radius:6px;margin-bottom:18px'>
+    <span style='font-size:1.05rem;font-weight:700;color:#0E6655'>
+    🔗 Connecting to what you already know (Phase 1 — Augmented LLM · Phase 2a — Chaining · Phase 5 — RAG)</span><br><br>
+    <span style='color:#1C2833'>
+    In Phase 1b you manually built a history list and passed it to the LLM on every call.
+    In Phase 2a you chained LLM calls with <code>out2 = llm(prompt + out1)</code>.
+    In Phase 5a you wrote four explicit steps: embed the query, cosine-search the corpus,
+    inject the retrieved text into the prompt, then call the LLM.<br><br>
+    LCEL's pipe operator expresses those same steps as <code>prompt&nbsp;|&nbsp;llm&nbsp;|&nbsp;parser</code>
+    — the same left-to-right flow, just written as a pipeline instead of nested function calls.
+    <code>RunnableWithMessageHistory</code> is your Phase 1b history list with automatic appending.
+    The Chroma retriever is your Phase 5a cosine loop with less code.
+    Nothing is new here — LangChain just gave the patterns shorter names.
+    </span>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 # ── Concept ───────────────────────────────────────────────────────────────────
 with st.expander("📖 What is LCEL — and what does it replace from Phase 1/2/5?"):

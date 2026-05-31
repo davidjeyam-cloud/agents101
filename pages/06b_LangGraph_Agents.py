@@ -28,8 +28,29 @@ st.caption(
 
 # ── Diagram ───────────────────────────────────────────────────────────────────
 st.image(diagram_langgraph_agents(),
-         caption="Phase 3 manual ReAct loop vs LangGraph agent graph — same behaviour, less scaffolding",
+         caption="Left: the while-loop you wrote in Phase 3. Right: LangGraph turning that loop into a graph.",
          use_column_width=True)
+
+st.markdown(
+    """
+    <div style='background:#EAF4EC;border-left:5px solid #117A65;padding:16px 22px;
+    border-radius:6px;margin-bottom:18px'>
+    <span style='font-size:1.05rem;font-weight:700;color:#0E6655'>
+    🔗 Connecting to what you already know (Phase 3 — ReAct · Reflection · Planning &amp; Phase 4 — HITL)</span><br><br>
+    <span style='color:#1C2833'>
+    In Phase 3 you wrote a <code>while iteration &lt; MAX_ITER</code> loop: the agent thinks,
+    calls a tool, reads the result, and decides whether to call another tool or stop.
+    In LangGraph that loop becomes a cycle between two nodes — an <strong>agent node</strong>
+    and a <strong>tools node</strong> — with the graph engine handling the cycling automatically.<br><br>
+    The Phase 4 HITL checkpoint you built in ~40 lines (serialise state → show approval UI →
+    resume) becomes a single parameter: <code>interrupt_before=["tools"]</code>.
+    You are not learning new agent behaviour. You are seeing the exact same behaviour
+    expressed as a graph instead of a while-loop.
+    </span>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 # ── Concept ───────────────────────────────────────────────────────────────────
 with st.expander("📖 What LangGraph adds to your Phase 3 agents"):
@@ -116,7 +137,7 @@ with tab_react:
 
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("#### Phase 3a — Manual (what you wrote)")
+        st.markdown("#### What you wrote in Phase 3a")
         st.code('''
 while iteration < MAX_ITER:
     response = llm_with_tools(history)

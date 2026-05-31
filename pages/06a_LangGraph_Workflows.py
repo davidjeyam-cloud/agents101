@@ -31,8 +31,29 @@ st.caption(
 
 # ── Diagram ───────────────────────────────────────────────────────────────────
 st.image(diagram_langgraph_workflows(),
-         caption="Phase 2 manual workflow vs LangGraph StateGraph — identical output, cleaner plumbing",
+         caption="Left: the raw Python you wrote in Phase 2. Right: LangGraph doing the same thing.",
          use_column_width=True)
+
+st.markdown(
+    """
+    <div style='background:#EAF4EC;border-left:5px solid #117A65;padding:16px 22px;
+    border-radius:6px;margin-bottom:18px'>
+    <span style='font-size:1.05rem;font-weight:700;color:#0E6655'>
+    🔗 Connecting to what you already know (Phase 2 — Workflow Patterns)</span><br><br>
+    <span style='color:#1C2833'>
+    In Phase 2 you wrote each workflow step as a Python function and wired them together by
+    passing variables: <code>out2 = llm(prompt + out1)</code>. That <em>is</em> a LangGraph workflow —
+    your functions become <strong>nodes</strong>, your variable-passing becomes <strong>edges</strong>,
+    and the shared result dict becomes a typed <strong>State</strong>.<br><br>
+    Think of it like this: Phase 2 was a relay race where runners hand off a baton manually.
+    LangGraph is the same race — same runners, same baton — but now there is a timing system,
+    a replay button, and a built-in pause for a coach to intervene.
+    The race does not change. The infrastructure around it does.
+    </span>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 # ── Concept ───────────────────────────────────────────────────────────────────
 with st.expander("📖 What is LangGraph — and what does it add over Phase 2?"):
@@ -136,7 +157,7 @@ with tab_chain:
     raw_trace = lg_trace = []
 
     with col1:
-        st.markdown("#### Phase 2a — Manual")
+        st.markdown("#### What you wrote in Phase 2a")
         if st.button("Run Manual", key="run_manual"):
             client = _client()
             def call(prompt):

@@ -42,7 +42,7 @@ def _ph10_diagrams(C, W, H, _fig, _box, _arrow, _agent_banner, _journey_bar,
         ax = axes[0]
         ax.add_patch(FancyBboxPatch((0, 4.8), 5, 0.38, boxstyle="round,pad=0.05",
                                     facecolor=C["dim"], edgecolor="white", lw=1.5, zorder=2))
-        ax.text(2.5, 4.99, "Phase 2 — Manual Workflow", ha="center", va="center",
+        ax.text(2.5, 4.99, "What you built in Phase 2 (raw Python)", ha="center", va="center",
                 fontsize=9, color="white", fontweight="bold")
         bx(ax, 2.5, 4.22, 3.6, 0.44, ["task = classify(input)"], C["input"])
         ar(ax, 2.5, 4.0, 2.5, 3.60)
@@ -59,7 +59,7 @@ def _ph10_diagrams(C, W, H, _fig, _box, _arrow, _agent_banner, _journey_bar,
         ax = axes[1]
         ax.add_patch(FancyBboxPatch((0, 4.8), 5, 0.38, boxstyle="round,pad=0.05",
                                     facecolor=C["agent_yes"], edgecolor="white", lw=1.5, zorder=2))
-        ax.text(2.5, 4.99, "Phase 10a — LangGraph StateGraph", ha="center", va="center",
+        ax.text(2.5, 4.99, "LangGraph — same logic, better plumbing", ha="center", va="center",
                 fontsize=9, color="white", fontweight="bold")
         bx(ax, 2.5, 4.22, 3.8, 0.44, ["graph = StateGraph(State)"], C["input"])
         ar(ax, 2.5, 4.0, 2.5, 3.60)
@@ -106,7 +106,7 @@ def _ph10_diagrams(C, W, H, _fig, _box, _arrow, _agent_banner, _journey_bar,
         ax = axes[0]
         ax.add_patch(FancyBboxPatch((0, 5.0), 5, 0.38, boxstyle="round,pad=0.05",
                                     facecolor=C["dim"], edgecolor="white", lw=1.5, zorder=2))
-        ax.text(2.5, 5.19, "Phase 3 — Manual ReAct Loop", ha="center", va="center",
+        ax.text(2.5, 5.19, "What you built in Phase 3 (your loop)", ha="center", va="center",
                 fontsize=9, color="white", fontweight="bold")
         bx(ax, 2.5, 4.4, 3.6, 0.48, ["while iteration < MAX_ITER:", "  response = llm(history)"], C["llm"])
         ar(ax, 2.5, 4.16, 2.5, 3.76)
@@ -124,7 +124,7 @@ def _ph10_diagrams(C, W, H, _fig, _box, _arrow, _agent_banner, _journey_bar,
         ax = axes[1]
         ax.add_patch(FancyBboxPatch((0, 5.0), 5, 0.38, boxstyle="round,pad=0.05",
                                     facecolor=C["agent_yes"], edgecolor="white", lw=1.5, zorder=2))
-        ax.text(2.5, 5.19, "Phase 10b — LangGraph Agent", ha="center", va="center",
+        ax.text(2.5, 5.19, "LangGraph — your loop as a typed graph", ha="center", va="center",
                 fontsize=9, color="white", fontweight="bold")
         bx(ax, 2.5, 4.4, 3.8, 0.48,
            ["agent = create_react_agent(llm, tools,", "  checkpointer=MemorySaver())"], C["llm"])
