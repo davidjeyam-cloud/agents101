@@ -81,8 +81,8 @@ pg = st.navigation({
         st.Page("pages/07d_OpenAI.py",      title="11d — OpenAI Assistants 🔜"),
         st.Page("pages/07e_Platforms.py",   title="11e — Platform Compare 🔜"),
     ],
-    "📝 Self Assessment": [
-        st.Page("pages/0q_Quiz_Hub.py", title="Quiz Hub — Test All Phases"),
+    "Phase 100 — Self Assessment": [
+        st.Page("pages/0q_Quiz_Hub.py", title="100 — Quiz Hub"),
     ],
 })
 

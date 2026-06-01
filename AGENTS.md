@@ -61,8 +61,7 @@ Phase 9   Best Practices    Tool Design · Prompt Engineering · When NOT to use
 Phase 10  Frameworks        LangGraph Workflows ✅ · LangGraph Agents ✅ · LangSmith ✅ · LangChain ✅
                             Google ADK 🔜 · Framework Compare 🔜
 Phase 11  Platforms  🔜     Vertex AI · Azure · Bedrock · OpenAI Assistants
-─────────────────────────────────────────────────────────────────────────────
-Self Assessment             Quiz Hub — dynamic MCQ covering all phases
+Phase 100 Self Assessment   Quiz Hub — dynamic MCQ covering all phases (0–10)
 ```
 
 ---
