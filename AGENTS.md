@@ -37,28 +37,32 @@ Open **http://localhost:8501** → start at **Phase 0 → Home**.
 | LLM | Google Gemini 2.5 Flash (`gemini-2.5-flash`) |
 | SDK | `google-genai` (NOT `google-generativeai` — deprecated) |
 | UI | Streamlit multi-page (`app.py` → `pages/`) |
-| Diagrams | `utils/diagrams.py` → matplotlib → PNG |
+| Diagrams | `utils/diagrams.py` + `utils/_diagram_phase10.py` → matplotlib → PNG |
 | Tools | `utils/tools.py` — 6 real APIs, no key needed |
 | Embeddings | `gemini-embedding-001`, 3072 dimensions |
+| Frameworks (Ph10) | `langgraph`, `langchain`, `langchain-google-genai`, `langsmith` |
 | Key env var | `GEMINI_API_KEY` in `.env` |
 
 ---
 
-## Phase Map (29 pages complete)
+## Phase Map (34 pages complete)
 
 ```
-Phase 0  Foundations        Hello Gemini · Agent Anatomy · Learning Insights · Quiz Hub
-Phase 1  Augmented LLM      Plain LLM → +Memory → +Tools → Mini Agent
-Phase 2  Workflow Patterns  Chaining · Routing · Parallelization · Orchestrator · Evaluator
-Phase 3  Core Agents        ReAct · Reflection · Planning · Code Exec · Pattern Guide  ← YOU ARE HERE
-Phase 4  Trust & Safety     Guardrails · HITL · LLM-as-Judge · Eval Framework
-Phase 5  Knowledge          RAG Agent · Long-term Memory
-Phase 6  Multi-Agent        Multi-Agent · MCP · A2A · Agent Comms
-Phase 7  Production Ops     Observability · Cost & Latency · Error Analysis
-Phase 8  In Practice        Customer Support Agent · Elite Multi-Agent
-Phase 9  Best Practices     Tool Design · Prompt Engineering · When NOT to use agents
-Phase 10 Frameworks  🔜     LangGraph · LangChain · Google ADK
-Phase 11 Platforms   🔜     Vertex AI · Azure · Bedrock · OpenAI Assistants
+Phase 0   Foundations       Hello Gemini · Agent Anatomy · Learning Insights
+Phase 1   Augmented LLM     Plain LLM → +Memory → +Tools → Mini Agent
+Phase 2   Workflows         Chaining · Routing · Parallelization · Orchestrator · Evaluator
+Phase 3   Core Agents       ReAct · Reflection · Planning · Code Exec · Pattern Guide
+Phase 4   Trust & Safety    Guardrails · HITL · LLM-as-Judge · (Eval Framework 🔜)
+Phase 5   Knowledge         RAG Agent · Long-term Memory
+Phase 6   Multi-Agent       Multi-Agent · MCP · A2A · Agent Comms
+Phase 7   Production Ops    Observability · Cost & Latency · Error Analysis
+Phase 8   In Practice       Customer Support · Elite Multi-Agent · (Coding Agent 🔜)
+Phase 9   Best Practices    Tool Design · Prompt Engineering · When NOT to use agents
+Phase 10  Frameworks        LangGraph Workflows ✅ · LangGraph Agents ✅ · LangSmith ✅ · LangChain ✅
+                            Google ADK 🔜 · Framework Compare 🔜
+Phase 11  Platforms  🔜     Vertex AI · Azure · Bedrock · OpenAI Assistants
+─────────────────────────────────────────────────────────────────────────────
+Self Assessment             Quiz Hub — dynamic MCQ covering all phases
 ```
 
 ---
@@ -70,12 +74,13 @@ Phase 11 Platforms   🔜     Vertex AI · Azure · Bedrock · OpenAI Assistants
 | `app.py` | Streamlit entry + navigation (edit to add/reorder pages) |
 | `utils/llm.py` | Gemini wrapper — model, retry logic (`_call`), chat helpers |
 | `utils/tools.py` | 6 real tool functions (weather, stocks, units, country, holidays, joke) |
-| `utils/diagrams.py` | All architecture diagrams → `bytes` (PNG) |
-| `utils/quiz.py` | Phase seed concepts + Gemini MCQ generator |
+| `utils/diagrams.py` | Architecture diagrams Phases 0–9 → PNG bytes |
+| `utils/_diagram_phase10.py` | Phase 10 diagram functions (LangGraph, LangSmith, LCEL) → PNG bytes |
+| `utils/quiz.py` | Phase seed concepts + Gemini MCQ generator (phases 0–10) |
 | `CLAUDE.md` | Full project instructions for Claude Code (source of truth) |
 | `docs/ARCHITECTURE.md` | System overview, stack, design principles |
 | `docs/DECISIONS.md` | Architecture Decision Records (why Gemini, why API-first, etc.) |
-| `docs/patterns.md` | All 9 patterns reference — mechanism, cost, examples, risks |
+| `docs/patterns.md` | All 9 agent patterns reference — mechanism, cost, examples, risks |
 
 ---
 
@@ -87,6 +92,7 @@ Phase 11 Platforms   🔜     Vertex AI · Azure · Bedrock · OpenAI Assistants
 4. **Never silent** `except Exception: emb = np.zeros(N)` — raise or log loudly
 5. **Every interactive page** must include a `🔬 Execution Trace` expander
 6. **Every comparison** must be a Markdown table — never bullet-list pros/cons
+7. **Quiz sync is mandatory** — no phase is done until `utils/quiz.py` PHASE_SEEDS includes it
 
 ---
 
