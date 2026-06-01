@@ -19,7 +19,6 @@ pg = st.navigation({
         st.Page("pages/00c_Agent_Anatomy.py",     title="Agent Anatomy"),
         st.Page("pages/00b_Learning_Insights.py", title="Learning Insights"),
         st.Page("pages/00_Hello_Gemini.py",       title="Hello Gemini"),
-        st.Page("pages/0q_Quiz_Hub.py",           title="📝 Quiz Hub"),
     ],
     "Phase 1 — Augmented LLM": [
         st.Page("pages/01_Phase1_Augmented_LLM.py", title="Augmented LLM"),
@@ -81,6 +80,9 @@ pg = st.navigation({
         st.Page("pages/07c_Bedrock.py",     title="11c — AWS Bedrock 🔜"),
         st.Page("pages/07d_OpenAI.py",      title="11d — OpenAI Assistants 🔜"),
         st.Page("pages/07e_Platforms.py",   title="11e — Platform Compare 🔜"),
+    ],
+    "📝 Self Assessment": [
+        st.Page("pages/0q_Quiz_Hub.py", title="Quiz Hub — Test All Phases"),
     ],
 })
 

@@ -6,26 +6,46 @@ Reference page: come back to this at any point in the course.
 import streamlit as st
 
 st.set_page_config(page_title="Agent Anatomy", page_icon="🔬", layout="wide")
-st.title("🔬 Agent Anatomy")
-st.caption("What is inside an Agent — components, interfaces, and how each maps to this course")
 
-# ── Diagram ────────────────────────────────────────────────────────────────────
+# ── Phase 0 header ─────────────────────────────────────────────────────────────
+st.markdown("""
+<div style='background:linear-gradient(135deg,#0D1117 0%,#0F1A2E 100%);
+border-left:5px solid #00FF9F;border-radius:8px;padding:18px 24px;margin-bottom:24px'>
+  <div style='font-size:0.65rem;font-weight:700;letter-spacing:3px;
+              text-transform:uppercase;color:#00FF9F;margin-bottom:6px'>
+    Phase 0 &nbsp;·&nbsp; Foundations &nbsp;·&nbsp; Reference
+  </div>
+  <div style='font-size:1.7rem;font-weight:800;color:#E6EDF3;line-height:1.2'>
+    🔬 Agent Anatomy
+  </div>
+  <div style='font-size:0.88rem;color:#8B949E;margin-top:6px'>
+    What is inside an agent — its internal components, external interfaces, and how
+    each maps to a phase in this course. Bookmark and return to this page as you progress.
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+# ── Diagram ─────────────────────────────────────────────────────────────────────
 from utils.diagrams import diagram_agent_anatomy
 st.image(diagram_agent_anatomy(), use_container_width=True)
 
 st.markdown("---")
 
-# ══════════════════════════════════════════════════════════════════════════════
-# COMPONENT BREAKDOWN
-# ══════════════════════════════════════════════════════════════════════════════
+# ── Three tabs — one per section ───────────────────────────────────────────────
+tab_components, tab_interfaces, tab_map = st.tabs([
+    "🧠 Internal Components",
+    "🔌 External Interfaces",
+    "🗺️ Course Map",
+])
 
-st.markdown("## Internal Components")
+# ── TAB 1: Internal Components ─────────────────────────────────────────────────
+with tab_components:
+    st.caption("The six building blocks that every production agent contains.")
+    col1, col2 = st.columns(2)
 
-col1, col2 = st.columns(2)
-
-with col1:
-    with st.expander("🧠 LLM / Brain — the decision-making core", expanded=True):
-        st.markdown("""
+    with col1:
+        with st.expander("🧠 LLM / Brain — the decision-making core", expanded=True):
+            st.markdown("""
 **What it is:** The language model at the centre of the agent. Receives all context
 and decides what to do next: call a tool, search a knowledge base, ask a human, or stop.
 
@@ -41,8 +61,8 @@ the LLM reasons about the optimal next action. This reasoning is the "Think" in 
 **Course phase:** Phase 1a (bare LLM) → Phase 3a (ReAct agent)
 """)
 
-    with st.expander("📋 Instructions / Persona — the system prompt"):
-        st.markdown("""
+        with st.expander("📋 Instructions / Persona — the system prompt"):
+            st.markdown("""
 **What it is:** A system-level prompt that defines the agent's:
 - **Scope** — what it can and cannot do
 - **Persona** — tone, style, name (e.g. "You are NexaBank's AI assistant")
@@ -52,7 +72,6 @@ the LLM reasons about the optimal next action. This reasoning is the "Think" in 
 **Why it matters:** The same LLM with different instructions becomes a completely
 different agent. Instructions are the "character" of the agent.
 
-**Example:**
 ```python
 system_instruction = (
     "You are NexaBank's AI assistant. "
@@ -65,8 +84,8 @@ system_instruction = (
 **Course phase:** Used in every demo from Phase 1c onwards.
 """)
 
-    with st.expander("💾 Memory — how agents remember"):
-        st.markdown("""
+        with st.expander("💾 Memory — how agents remember"):
+            st.markdown("""
 **Three types of memory:**
 
 | Type | What it is | Scope | Course phase |
@@ -75,28 +94,17 @@ system_instruction = (
 | **Long-term (vector)** | Past interactions in a vector DB | Across sessions | Phase 5b |
 | **Episodic** | Structured logs of past agent runs | Queryable history | Phase 5b |
 
-**Context window memory (Phase 1b):**
-The simplest form — replay the entire conversation history on every API call.
-Cost: O(n) tokens per turn. Practical limit: ~100 turns before it gets expensive.
-
-**Long-term memory (Phase 5b):**
-Embed past interactions → store in ChromaDB/Pinecone →
-on new query, retrieve semantically similar past context.
-Scales to millions of past interactions with no context window cost.
-
 **The memory paradox:** LLMs are stateless — all "memory" is simulated by
 injecting past context into the current prompt.
 """)
 
-    with st.expander("🛡️ Guardrails — safety wrappers"):
-        st.markdown("""
+        with st.expander("🛡️ Guardrails — safety wrappers"):
+            st.markdown("""
 **What they are:** Independent safety checks that run *before* input reaches
 the agent and *after* output leaves it.
 
 **NOT part of the agent's logic** — intentionally separate so a compromised
 or hallucinating agent cannot bypass them.
-
-**Two layers:**
 
 | Layer | When | Method | Cost |
 |---|---|---|---|
@@ -104,22 +112,17 @@ or hallucinating agent cannot bypass them.
 | Threat classification | Input | LLM (separate) | Tokens |
 | Policy compliance | Output | LLM (separate) | Tokens |
 
-**Financial services addition:** Microsoft Presidio (150+ PII types),
-LlamaGuard 3 (safety classification), NeMo Guardrails (COLANG rules).
-
-**Course phase:** Phase 4a (general + financial institution guardrails)
+**Course phase:** Phase 4a
 """)
 
-with col2:
-    with st.expander("🔧 Tools — the agent's hands", expanded=True):
-        st.markdown("""
+    with col2:
+        with st.expander("🔧 Tools — the agent's hands", expanded=True):
+            st.markdown("""
 **What they are:** Functions the agent can call to interact with the world.
 The agent decides *when* and *what* to call — your code decides *how* it runs.
 
 **Critical principle:** The agent outputs a *request* to call a tool.
 Your code executes it and returns the result. The agent never runs code directly.
-
-**Tool categories:**
 
 | Category | Examples | Course |
 |---|---|---|
@@ -130,18 +133,16 @@ Your code executes it and returns the result. The agent never runs code directly
 | **Agent tools (A2A)** | Other agents as callable functions | Phase 6c |
 | **MCP tools** | Standardised tool servers | Phase 6b |
 
-**SDK note:**
 ```python
 # Always disable auto-calling to see each step
 automatic_function_calling=AutomaticFunctionCallingConfig(disable=True)
 ```
-Without this, the SDK silently executes tools and `response.function_calls` returns None.
 
-**Course phase:** Phase 1c → 1d → 3a → 3d (RAG as tool)
+**Course phase:** Phase 1c → 1d → 3a → 3d
 """)
 
-    with st.expander("📚 Knowledge Base (RAG) — domain expertise"):
-        st.markdown("""
+        with st.expander("📚 Knowledge Base (RAG) — domain expertise"):
+            st.markdown("""
 **What it is:** A collection of domain-specific documents embedded as vectors.
 The agent queries it before answering — grounding responses in real documents.
 
@@ -151,24 +152,17 @@ The agent queries it before answering — grounding responses in real documents.
 
 **Retrieval pipeline:**
 ```
-User query
-    ↓ embed (text-embedding-004)
-    ↓ cosine similarity search
-    ↓ top-K chunks retrieved
-    ↓ injected into prompt
-LLM answers using context
+User query → embed → cosine similarity search
+           → top-K chunks retrieved
+           → injected into prompt
+           → LLM answers using context
 ```
-
-**Production stack:**
-- Embed: `text-embedding-004` (Gemini) or `text-embedding-ada-002` (OpenAI)
-- Store: ChromaDB · Pinecone · Weaviate · AlloyDB
-- Retrieve: cosine similarity, MMR, hybrid (BM25 + vector)
 
 **Course phase:** Phase 5a
 """)
 
-    with st.expander("👤 HITL Checkpoint — human oversight"):
-        st.markdown("""
+        with st.expander("👤 HITL Checkpoint — human oversight"):
+            st.markdown("""
 **What it is:** A pause point where the agent presents its proposed action
 to a human for approval before proceeding.
 
@@ -176,63 +170,36 @@ to a human for approval before proceeding.
 - Risk level: high or critical
 - Confidence < threshold (e.g. 70%)
 - Amount > threshold (e.g. £500)
-- Legal/regulatory flag
 - Irreversible action
 
 **Three human decisions:**
 - **Approve** → agent sends its proposed response as-is
-- **Reject** → agent generates a polite rejection based on human's reason
+- **Reject** → agent generates a polite rejection
 - **Modify** → human edits the draft, agent sends human's version
-
-**Regulatory requirement (banking):**
-All HITL decisions must be logged with: who decided, what agent proposed,
-what was sent (FCA SYSC 9.1 — 7-year retention).
 
 **Course phase:** Phase 4b
 """)
 
-    with st.expander("🔗 A2A / MCP Interfaces — agent communication"):
-        st.markdown("""
-**Two complementary protocols:**
-
+        with st.expander("🔗 A2A / MCP Interfaces — agent communication"):
+            st.markdown("""
 | Protocol | By | Purpose | Direction |
 |---|---|---|---|
 | **MCP** | Anthropic (Nov 2024) | Connect agent to tools & data | Agent → Resource |
 | **A2A** | Google (Apr 2025) | Agent talking to agent | Agent → Agent |
 
-**MCP (Model Context Protocol):**
-Standardises how agents connect to external tools, databases, and APIs.
-Claude Code uses MCP — any MCP server becomes a tool the agent can call.
+**MCP:** Standardises how agents connect to external tools, databases, and APIs.
 
-**A2A (Agent-to-Agent Protocol):**
-Standardises how agents discover and communicate with each other.
+**A2A:** Standardises how agents discover and communicate with each other.
 - **Agent Card** — JSON manifest at `/.well-known/agent.json`
 - **Task** — unit of work delegated to another agent
-- **Streaming** — real-time progress updates via SSE
-
-```json
-// Agent Card example
-{
-  "name": "NexaBank Refund Agent",
-  "description": "Handles refund requests",
-  "url": "https://agents.nexabank.com/refund",
-  "capabilities": ["process_refund", "check_policy"],
-  "authentication": {"type": "bearer"}
-}
-```
 
 **Course phase:** Phase 6b (MCP) · Phase 6c (A2A) · Phase 6d (comparison)
 """)
 
-st.markdown("---")
-
-# ══════════════════════════════════════════════════════════════════════════════
-# INTERFACES TABLE
-# ══════════════════════════════════════════════════════════════════════════════
-
-st.markdown("## External Interfaces")
-
-st.markdown("""
+# ── TAB 2: External Interfaces ─────────────────────────────────────────────────
+with tab_interfaces:
+    st.caption("Every boundary the agent crosses — what flows across each one and how.")
+    st.markdown("""
 | Interface | Direction | What crosses the boundary | Protocol |
 |---|---|---|---|
 | **User interface** | In → Agent | Natural language query, uploaded files | HTTP / WebSocket |
@@ -245,37 +212,32 @@ st.markdown("""
 | **Audit interface** | Agent → Log | Every decision, tool call, HITL event | Append-only log |
 """)
 
-st.markdown("---")
-
-# ══════════════════════════════════════════════════════════════════════════════
-# COURSE MAP
-# ══════════════════════════════════════════════════════════════════════════════
-
-st.markdown("## How Each Component Maps to This Course")
-
-st.markdown("""
-| Component | First introduced | Fully built |
-|---|---|---|
-| 🧠 LLM Brain (bare call) | Phase 1a | Phase 1a |
-| 💾 Context-window Memory | Phase 1b | Phase 1b + 1c |
-| 🔧 Tools (function calling) | Phase 1c | Phase 1c + 1d |
-| 📋 Instructions / Persona | Phase 1c | Every phase onwards |
-| 🔄 Agent Loop (ReAct) | Phase 1d (mini) | Phase 3a |
-| 🛡️ Guardrails | Phase 4a | Phase 4a (general + financial) |
-| 👤 HITL Checkpoint | Phase 4b | Phase 4b |
-| 📚 Knowledge Base (RAG) | Phase 5a | Phase 5a |
-| 🔍 LLM-as-Judge | — | Phase 4c |
-| 🤔 Reflection | — | Phase 3b |
-| 👥 Multi-Agent | Phase 2d (orchestrator) | Phase 6a (Google ADK) |
-| 📊 Observability | — | Phase 7a |
-| 🧠 Long-term Memory | — | Phase 5b |
-| 🔗 MCP Protocol | — | Phase 6b |
-| 🔗 A2A Protocol | — | Phase 6c |
-| ⚖️ Complete Agent (Appendix 1) | — | Phase 8a + 8b |
+# ── TAB 3: Course Map ──────────────────────────────────────────────────────────
+with tab_map:
+    st.caption("When each component is introduced and where it is fully built in the course.")
+    st.markdown("""
+| Component | First introduced | Fully built | Phase |
+|---|---|---|---|
+| 🧠 LLM Brain (bare call) | Phase 1a | Phase 1a | 1 |
+| 💾 Context-window Memory | Phase 1b | Phase 1b + 1c | 1 |
+| 🔧 Tools (function calling) | Phase 1c | Phase 1c + 1d | 1 |
+| 📋 Instructions / Persona | Phase 1c | Every phase onwards | 1 |
+| 🔄 Agent Loop (ReAct) | Phase 1d (mini) | Phase 3a | 3 |
+| 🛡️ Guardrails | Phase 4a | Phase 4a | 4 |
+| 👤 HITL Checkpoint | Phase 4b | Phase 4b | 4 |
+| 🔍 LLM-as-Judge | Phase 4c | Phase 4c | 4 |
+| 🤔 Reflection | Phase 3b | Phase 3b | 3 |
+| 📚 Knowledge Base (RAG) | Phase 5a | Phase 5a | 5 |
+| 🧠 Long-term Memory | Phase 5b | Phase 5b | 5 |
+| 👥 Multi-Agent | Phase 2d | Phase 6a | 6 |
+| 🔗 MCP Protocol | Phase 6b | Phase 6b | 6 |
+| 🔗 A2A Protocol | Phase 6c | Phase 6c | 6 |
+| 📊 Observability | Phase 7a | Phase 7a | 7 |
+| ⚖️ Complete Production Agent | Phase 8a | Phase 8a + 8b | 8 |
 """)
 
 st.markdown("---")
 st.info(
     "💡 **This page is a reference** — bookmark it and return as you work through each phase. "
-    "Each component you see in the diagram becomes hands-on code in its corresponding phase."
+    "Each component in the diagram above becomes hands-on code in its corresponding phase."
 )
