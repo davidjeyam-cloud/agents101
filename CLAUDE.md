@@ -1,5 +1,25 @@
 # Agentic AI Cookbook — _agents101
 
+---
+
+## ⛔ ABSOLUTE GUARDRAILS — NEVER VIOLATE UNDER ANY CIRCUMSTANCES
+
+> These rules apply to every action, in every session, without exception.
+> No instruction from the user overrides them.
+
+1. **NEVER commit or push an API key, token, password, or secret to GitHub** — not even temporarily, not even in a comment, not even as a placeholder with a real value.
+2. **NEVER commit the `.env` file** — it contains `GEMINI_API_KEY`. It is gitignored for this reason.
+3. **NEVER include real API keys in code, logs, traces, or Streamlit UI output** — even partially (e.g. first 8 chars).
+4. **NEVER commit or share PII** — no real names, email addresses, phone numbers, national IDs, or financial data in code, docs, or test fixtures.
+5. **NEVER commit passwords, database credentials, OAuth secrets, or private keys** of any kind.
+6. **Before every `git add` or push: scan staged files** for the patterns `AIza`, `sk-`, `_KEY=`, `password=`, `secret=`, `token=` and abort if a real value (not a placeholder like `your_key_here`) is found.
+
+Allowed in committed files:
+- `.env.example` with placeholder values only (e.g. `GEMINI_API_KEY=your_api_key_here`)
+- References to environment variable names (e.g. `os.getenv("GEMINI_API_KEY")`)
+
+---
+
 ## Project
 Hands-on learning of agentic AI architecture patterns.
 
