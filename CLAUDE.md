@@ -248,13 +248,48 @@ cd c:\Users\abc\devtools\_agents101
 **Rule: no phase is "done" until the quiz seed bank includes it.**
 The quiz is the learner's self-assessment tool — a phase without quiz coverage is incomplete.
 
-### 5. Documentation sync (when a phase completes)
-- [ ] Phase Status table below updated to ✅ Complete
-- [ ] `pages/00a_Home.py` — `complete =` count incremented, phase card updated
-- [ ] `AGENTS.md` Phase Map updated if status changed
-- [ ] `docs/ARCHITECTURE.md` Phase Map table updated
+### 5. Documentation + images sync (MANDATORY on EVERY commit)
 
-### 5. Commit message convention
+**Rule: `docs/` and `docs/images/` must always reflect the current codebase.
+They are never optional — treat them as part of the code, not an afterthought.**
+
+#### 5a. When a phase page is completed or its status changes
+- [ ] Phase Status table in this file updated to ✅ Complete
+- [ ] `pages/00a_Home.py` — `complete =` count incremented, phase card updated
+- [ ] `AGENTS.md` — page count updated, Phase Map row updated
+- [ ] `docs/ARCHITECTURE.md` — Learning Phases table row updated
+
+#### 5b. When a new diagram function is added to `utils/diagrams.py` or `utils/_diagram_phase10.py`
+- [ ] Export PNG immediately to `docs/images/`:
+  ```python
+  from utils.diagrams import diagram_new_fn
+  with open("docs/images/new_fn.png", "wb") as f:
+      f.write(diagram_new_fn())
+  ```
+- [ ] Reference the image in `docs/ARCHITECTURE.md` where relevant
+
+#### 5c. When navigation changes (`app.py`)
+- [ ] `AGENTS.md` Phase Map updated to reflect new group/page structure
+- [ ] `docs/ARCHITECTURE.md` System Diagram updated if a phase group is added or moved
+
+#### 5d. When new packages are added (`requirements.txt`)
+- [ ] `AGENTS.md` Stack at a Glance table updated
+- [ ] `docs/ARCHITECTURE.md` Technology Stack table updated
+
+**Sync check before every push:**
+```powershell
+# Verify docs/images has a PNG for every diagram function
+python -c "
+from utils import diagrams, _diagram_phase10
+import os
+fns = [f for f in dir(diagrams) if f.startswith('diagram_')]
+imgs = os.listdir('docs/images')
+print('Diagram functions:', len(fns))
+print('Images in docs/images:', len(imgs))
+"
+```
+
+### 6. Commit message convention
 ```
 feat: Phase Xn — <page title> complete          ← new page done
 fix: <short description of what broke>          ← bug fix
@@ -262,7 +297,7 @@ chore: <tooling, deps, config change>           ← non-code
 docs: <what doc was updated>                    ← docs only
 ```
 
-### 6. Never commit
+### 7. Never commit
 - `.env` (contains GEMINI_API_KEY)
 - `.venv/` directory
 - `__pycache__/` directories

@@ -93,6 +93,9 @@ Self Assessment             Quiz Hub — dynamic MCQ covering all phases
 5. **Every interactive page** must include a `🔬 Execution Trace` expander
 6. **Every comparison** must be a Markdown table — never bullet-list pros/cons
 7. **Quiz sync is mandatory** — no phase is done until `utils/quiz.py` PHASE_SEEDS includes it
+8. **Docs must always reflect the code** — on every commit: update `AGENTS.md` page count +
+   phase map, update `docs/ARCHITECTURE.md` phase table, export any new diagram functions to
+   `docs/images/`. The docs are part of the codebase, not an afterthought.
 
 ---
 
