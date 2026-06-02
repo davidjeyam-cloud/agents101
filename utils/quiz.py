@@ -223,6 +223,28 @@ PHASE_SEEDS: dict[str, dict] = {
             "# LCEL RAG chain: Phase 5a pipeline as 4 components\nchain = {'context': retriever, 'question': lambda x: x} | prompt | llm | StrOutputParser()",
         ],
     },
+    "10f": {
+        "title": "Phase 10f — Framework Comparison",
+        "icon": "⚖️",
+        "status": "complete",
+        "concepts": [
+            "Raw SDK is always sufficient — frameworks solve recurring plumbing problems, not new capabilities; adding a framework trades control for convenience",
+            "LangGraph pays off when you need HITL, persistence across sessions, typed state, or streaming — for a simple 2-step chain it adds ~25 lines for no functional gain",
+            "LangChain LCEL pays off when you have 5+ chain steps or need .stream()/.batch() with zero extra code — for single calls it adds a model wrapper dependency with no benefit",
+            "LangSmith adds value only at production scale: auto-tracing, golden-dataset evals, and cost dashboards in 3 env vars — during development it adds overhead without insight",
+            "Google ADK makes sense only when deploying to Google Cloud infrastructure with managed multi-agent scaling — using it outside that context adds vendor lock-in for no benefit",
+            "Framework debugging is harder than Raw SDK debugging: a node failure in LangGraph produces a graph-level traceback that obscures which Python line actually failed",
+            "LangChain LCEL and LangGraph both require LangChain model wrappers — switching LLM providers requires adapter changes, while Raw SDK lets you swap providers by changing one import",
+            "The correct framework selection order: start Raw SDK, add LangGraph when HITL/persistence is required, add LCEL when RAG streaming is required, add LangSmith when production tracing is required",
+            "A team that learns frameworks before Raw SDK cannot diagnose framework bugs — they cannot distinguish a framework limitation from an architectural mistake",
+            "Code complexity cost is asymmetric: LangGraph reduces a 40-line HITL block to 2 lines but adds 20 lines to a simple 6-line chain — always measure against your actual use case",
+        ],
+        "snippets": [
+            "# Raw SDK 2-step chain: 6 lines\nr1 = client.generate(contents=f'Summarise: {text}'); r2 = client.generate(contents=f'Translate: {r1.text}')",
+            "# LangGraph same chain: ~25 lines\n# graph.add_node('A', fn_a); graph.add_edge('A','B'); chain = graph.compile(); chain.invoke(state)",
+            "# LangGraph HITL: 40 lines → 2\nagent = create_react_agent(llm, tools, interrupt_before=['tools'], checkpointer=MemorySaver())",
+        ],
+    },
 }
 
 # ---------------------------------------------------------------------------

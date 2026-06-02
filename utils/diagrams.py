@@ -2543,6 +2543,7 @@ from utils._diagram_phase10 import _ph10_diagrams as _ph10
 (diagram_langgraph_workflows,
  diagram_langgraph_agents,
  diagram_langsmith,
- diagram_langchain) = _ph10(
+ diagram_langchain,
+ diagram_framework_compare) = _ph10(
     C, W, H, _fig, _box, _arrow, _agent_banner, _journey_bar,
     _agent_def_footer, _to_bytes)

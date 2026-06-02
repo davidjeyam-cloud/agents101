@@ -223,5 +223,135 @@ def _ph10_diagrams(C, W, H, _fig, _box, _arrow, _agent_banner, _journey_bar,
         _agent_def_footer(ax)
         return _to_bytes(fig)
 
+    def diagram_framework_compare() -> bytes:
+        """
+        2-panel diagram for Phase 10f — Framework Comparison.
+        Left:  abstraction vs agent-readiness landscape (bubble chart).
+        Right: layered stack — what each framework adds over the one below.
+        """
+        import matplotlib.gridspec as gridspec
+
+        fig = plt.figure(figsize=(13, 5.4))
+        fig.patch.set_facecolor(C["bg"])
+        gs = gridspec.GridSpec(1, 2, figure=fig, wspace=0.06)
+        ax_l = fig.add_subplot(gs[0])
+        ax_r = fig.add_subplot(gs[1])
+
+        # ── shared helpers ────────────────────────────────────────────────────
+        def bx(ax, cx, cy, w, h, lines, fc, fs=7.5, ec="white"):
+            p = FancyBboxPatch((cx-w/2, cy-h/2), w, h,
+                               boxstyle="round,pad=0.08",
+                               facecolor=fc, edgecolor=ec, linewidth=2, zorder=3)
+            ax.add_patch(p)
+            ax.text(cx, cy, "\n".join(lines) if isinstance(lines, list) else lines,
+                    ha="center", va="center", fontsize=fs, color="white",
+                    fontweight="bold", zorder=4, multialignment="center", linespacing=1.3)
+
+        def ar(ax, x1, y1, x2, y2, lbl="", col=None, dashed=False):
+            col = col or C["arrow"]
+            ls = (0, (4, 3)) if dashed else "solid"
+            ax.annotate("", xy=(x2, y2), xytext=(x1, y1),
+                        arrowprops=dict(arrowstyle="-|>", color=col, lw=1.6,
+                                        mutation_scale=12, linestyle=ls), zorder=5)
+            if lbl:
+                ax.text((x1+x2)/2+0.1, (y1+y2)/2, lbl, fontsize=6,
+                        color=col, style="italic", zorder=6)
+
+        # ── LEFT — Abstraction vs Agent-Readiness landscape ───────────────────
+        ax_l.set_xlim(0, 5); ax_l.set_ylim(0, 5.4); ax_l.axis("off")
+        ax_l.set_facecolor(C["bg"])
+
+        # Header
+        ax_l.add_patch(FancyBboxPatch((0, 5.0), 5, 0.38,
+                                      boxstyle="round,pad=0.05",
+                                      facecolor=C["llm"], edgecolor="white",
+                                      lw=1.5, zorder=2))
+        ax_l.text(2.5, 5.19, "Framework Landscape — Abstraction vs Agent-Readiness",
+                  ha="center", va="center", fontsize=8.5,
+                  color="white", fontweight="bold")
+
+        # Axis labels
+        ax_l.text(0.15, 2.7, "MORE\nCONTROL", ha="center", fontsize=7,
+                  color=C["dim"], rotation=90, va="center")
+        ax_l.text(4.85, 2.7, "MORE\nCONVENIENCE", ha="center", fontsize=7,
+                  color=C["dim"], rotation=90, va="center")
+        ax_l.text(2.5, 0.12, "Single Agent  ◄─────────────────►  Multi-Agent",
+                  ha="center", fontsize=7, color=C["dim"])
+        # Dividing lines
+        ax_l.axhline(2.7, color=C["dim"], lw=0.6, ls="--", alpha=0.4, zorder=1)
+        ax_l.axvline(2.5, color=C["dim"], lw=0.6, ls="--", alpha=0.4, zorder=1)
+
+        # Framework bubbles  (cx, cy, w, h, lines, color)
+        BUBBLES = [
+            (1.2, 1.5, 1.6, 0.62,  ["Raw SDK", "(Phases 1–9)"],         C["input"]),
+            (1.5, 3.2, 1.7, 0.62,  ["LangChain LCEL", "(Phase 10d)"],   C["memory"]),
+            (2.5, 3.8, 1.8, 0.62,  ["LangGraph", "(Phases 10a/10b)"],   C["agent_yes"]),
+            (3.8, 4.3, 1.6, 0.62,  ["Google ADK", "(Phase 10e)"],       C["tools"]),
+            (2.5, 2.0, 1.8, 0.50,  ["LangSmith", "(Phase 10c)"],        C["loop"]),
+        ]
+        for cx, cy, w, h, lines, fc in BUBBLES:
+            bx(ax_l, cx, cy, w, h, lines, fc)
+
+        # LangSmith annotation — wraps everything
+        ax_l.text(2.5, 1.62, "observability layer — wraps all frameworks",
+                  ha="center", fontsize=6, color=C["loop"], style="italic")
+
+        # Phase anchor labels
+        for cx, cy, lbl in [(1.2, 0.82, "Full control\nno boilerplate"),
+                            (1.5, 2.60, "Pipelines\n+ RAG"),
+                            (2.5, 3.18, "Agents + HITL\n+ Streaming"),
+                            (3.8, 3.68, "Cloud multi-agent\nmanaged infra")]:
+            ax_l.text(cx, cy, lbl, ha="center", fontsize=6, color=C["dim"],
+                      style="italic", multialignment="center")
+
+        # ── RIGHT — Layered stack ─────────────────────────────────────────────
+        ax_r.set_xlim(0, 5); ax_r.set_ylim(0, 5.4); ax_r.axis("off")
+        ax_r.set_facecolor(C["bg"])
+
+        ax_r.add_patch(FancyBboxPatch((0, 5.0), 5, 0.38,
+                                      boxstyle="round,pad=0.05",
+                                      facecolor=C["agent_yes"], edgecolor="white",
+                                      lw=1.5, zorder=2))
+        ax_r.text(2.5, 5.19, "When to Add Each Layer",
+                  ha="center", va="center", fontsize=8.5,
+                  color="white", fontweight="bold")
+
+        LAYERS = [
+            (0.5,  0.85, 0.55, C["input"],     "RAW SDK",
+             "Always start here — full visibility,\nno dependencies"),
+            (1.45, 1.58, 0.55, C["agent_yes"], "+ LANGGRAPH",
+             "Add when: HITL, persistence,\nstreaming, typed state needed"),
+            (2.40, 2.30, 0.55, C["memory"],    "+ LCEL",
+             "Add when: RAG pipelines, chaining\nwith streaming/batching needed"),
+            (3.35, 3.02, 0.55, C["loop"],      "+ LANGSMITH",
+             "Add when: production — need auto\ntracing, evals, cost dashboards"),
+            (4.30, 3.74, 0.55, C["tools"],     "+ ADK",
+             "Add when: multi-agent on\nGoogle Cloud infra at scale"),
+        ]
+
+        for i, (lx, ly, lh, col, label, note) in enumerate(LAYERS):
+            # Full-width bar
+            ax_r.add_patch(FancyBboxPatch((0.2, ly-lh/2), 4.6, lh,
+                                          boxstyle="round,pad=0.06",
+                                          facecolor=col, edgecolor="white",
+                                          lw=1.5, alpha=0.92, zorder=3+i))
+            ax_r.text(1.4, ly, label, ha="center", va="center", fontsize=8,
+                      color="white", fontweight="bold", zorder=10+i)
+            ax_r.text(3.1, ly, note, ha="center", va="center", fontsize=6.5,
+                      color="white", zorder=10+i, multialignment="center",
+                      linespacing=1.3)
+            if i < len(LAYERS) - 1:
+                ar(ax_r, 2.5, ly+lh/2, 2.5, LAYERS[i+1][1]-LAYERS[i+1][2]/2,
+                   col=C["dim"])
+
+        ax_r.text(2.5, 0.22, "Each layer is optional — Raw SDK alone can do everything",
+                  ha="center", fontsize=6.8, color=C["dim"], style="italic")
+
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=150, bbox_inches="tight",
+                    facecolor=fig.get_facecolor())
+        buf.seek(0); plt.close(fig)
+        return buf.getvalue()
+
     return (diagram_langgraph_workflows, diagram_langgraph_agents,
-            diagram_langsmith, diagram_langchain)
+            diagram_langsmith, diagram_langchain, diagram_framework_compare)
