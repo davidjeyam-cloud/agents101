@@ -223,6 +223,28 @@ PHASE_SEEDS: dict[str, dict] = {
             "# LCEL RAG chain: Phase 5a pipeline as 4 components\nchain = {'context': retriever, 'question': lambda x: x} | prompt | llm | StrOutputParser()",
         ],
     },
+    "10e": {
+        "title": "Phase 10e — Google ADK",
+        "icon": "🤖",
+        "status": "complete",
+        "concepts": [
+            "SequentialAgent(sub_agents=[A,B,C]) is Phase 2a Prompt Chaining formalised: each sub-agent's output is passed as input to the next automatically — the same data flow as out2 = llm(prompt + out1)",
+            "ParallelAgent(sub_agents=[A,B,C]) is Phase 2c Parallelization formalised: all sub-agents run concurrently and results are merged into session state — ADK manages the thread pool that you wrote with ThreadPoolExecutor",
+            "LoopAgent(sub_agent=A, max_iterations=N) is Phase 3's while-loop formalised: the sub-agent runs until it signals completion or max_iterations is reached — the exit condition replaces your 'if done: break' guard",
+            "The correct time to add ADK is when deploying multi-agent systems to Google Cloud infrastructure — outside that context, it adds Gemini-first vendor lock-in without architectural benefit",
+            "ADK's Runner and InMemorySessionService replace the execution harness and session dict you built manually — they do not change the agent's reasoning logic",
+            "A LoopAgent's exit condition (sub-agent signals escalate_to_parent) is architecturally identical to a ReAct agent's 'no more tool calls' check — both are a loop with a conditional exit",
+            "ParallelAgent adds value when sub-agents are truly independent — if agent B needs agent A's output, SequentialAgent is correct; using ParallelAgent for dependent tasks produces race conditions",
+            "SequentialAgent's key limitation: if step 2 fails, the pipeline aborts from that point — raw code gives you finer control over partial recovery and fallback paths",
+            "ADK agents share context through the session service — if two ParallelAgent sub-agents write to the same session key, the last-write-wins, unlike raw code where you control merge logic explicitly",
+            "The Runner executes one agent tree — for a multi-pipeline system with different root agents, you need multiple Runners; raw SDK lets you invoke any function at any point without this constraint",
+        ],
+        "snippets": [
+            "# SequentialAgent ≡ Phase 2a manual chaining\n# Manual: out2 = llm(step2_prompt + out1)\n# ADK: SequentialAgent(sub_agents=[step1, step2, step3])  — context passed automatically",
+            "# LoopAgent ≡ Phase 3 while loop\n# Manual: for i in range(MAX_ITER):\n#            if done: break\n# ADK: LoopAgent(sub_agent=refiner, max_iterations=MAX_ITER)  — exit via escalate_to_parent",
+            "# ParallelAgent ≡ Phase 2c ThreadPoolExecutor\n# Manual: with ThreadPoolExecutor() as p: f1=p.submit(fn,x); f2=p.submit(fn,x)\n# ADK: ParallelAgent(sub_agents=[agent1, agent2])  — ADK manages threads",
+        ],
+    },
     "10f": {
         "title": "Phase 10f — Framework Comparison",
         "icon": "⚖️",

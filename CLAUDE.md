@@ -407,7 +407,7 @@ docs: <what doc was updated>                    ← docs only
 | `06b_LangGraph_Agents.py` | LangGraph: Phase 3 ReAct/Reflection/Planning + Phase 4 HITL via interrupt_before | ✅ Complete |
 | `06c_LangSmith.py` | LangSmith: Phase 7 observability automated — auto-trace, datasets, eval runs | ✅ Complete |
 | `06d_LangChain.py` | LangChain LCEL: Phase 1 memory + Phase 2a chaining + Phase 5 RAG as pipe syntax | ✅ Complete |
-| `06e_GoogleADK.py` | Google ADK: multi-agent (sequential/parallel/loop) | 🔜 |
+| `06e_GoogleADK.py` | Google ADK: multi-agent (sequential/parallel/loop) | ✅ Complete |
 | `06f_Framework_Compare.py` | Framework comparison: LangGraph vs ADK vs raw SDK | ✅ Complete |
 
 ### Phase 11 — Managed Platforms  (cursory overview)

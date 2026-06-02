@@ -71,7 +71,7 @@ pg = st.navigation({
         st.Page("pages/06b_LangGraph_Agents.py",    title="10b — LangGraph Agents"),
         st.Page("pages/06c_LangSmith.py",           title="10c — LangSmith"),
         st.Page("pages/06d_LangChain.py",           title="10d — LangChain"),
-        st.Page("pages/06e_GoogleADK.py",           title="10e — Google ADK 🔜"),
+        st.Page("pages/06e_GoogleADK.py",           title="10e — Google ADK"),
         st.Page("pages/06f_Framework_Compare.py",   title="10f — Framework Compare 🔜"),
     ],
     "Phase 11 — Managed Platforms": [

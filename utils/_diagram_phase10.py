@@ -353,5 +353,139 @@ def _ph10_diagrams(C, W, H, _fig, _box, _arrow, _agent_banner, _journey_bar,
         buf.seek(0); plt.close(fig)
         return buf.getvalue()
 
+    def diagram_google_adk() -> bytes:
+        """
+        2-panel diagram for Phase 10e — Google ADK.
+        Left:  The 3 raw patterns you already built (Phases 2a / 2c / 3).
+        Right: ADK's 3 agent types that wrap those exact patterns.
+        """
+        fig, axes = plt.subplots(1, 2, figsize=(13, 5.4))
+        fig.patch.set_facecolor(C["bg"])
+
+        def bx(ax, cx, cy, w, h, lines, fc, fs=7.5):
+            p = FancyBboxPatch((cx-w/2, cy-h/2), w, h, boxstyle="round,pad=0.08",
+                               facecolor=fc, edgecolor="white", linewidth=2, zorder=3)
+            ax.add_patch(p)
+            ax.text(cx, cy, "\n".join(lines) if isinstance(lines, list) else lines,
+                    ha="center", va="center", fontsize=fs, color="white",
+                    fontweight="bold", zorder=4, multialignment="center", linespacing=1.3)
+
+        def ar(ax, x1, y1, x2, y2, lbl="", col=None):
+            col = col or C["arrow"]
+            ax.annotate("", xy=(x2, y2), xytext=(x1, y1),
+                        arrowprops=dict(arrowstyle="-|>", color=col, lw=1.6,
+                                        mutation_scale=12), zorder=5)
+            if lbl:
+                ax.text((x1+x2)/2+0.12, (y1+y2)/2, lbl,
+                        fontsize=6, color=col, style="italic")
+
+        for ax in axes:
+            ax.set_xlim(0, 5); ax.set_ylim(0, 5.4); ax.axis("off")
+            ax.set_facecolor(C["bg"])
+
+        # ── LEFT — raw patterns ────────────────────────────────────────────────
+        ax = axes[0]
+        ax.add_patch(FancyBboxPatch((0, 5.0), 5, 0.38, boxstyle="round,pad=0.05",
+                                    facecolor=C["dim"], edgecolor="white", lw=1.5, zorder=2))
+        ax.text(2.5, 5.19, "What you built in Phases 2a · 2c · 3 (raw Python)",
+                ha="center", va="center", fontsize=8.5, color="white", fontweight="bold")
+
+        # Sequential (Phase 2a)
+        bx(ax, 2.5, 4.38, 4.0, 0.50,
+           ["Phase 2a — Prompt Chaining",
+            "out2 = llm(prompt + out1)  # step by step"],
+           C["input"], fs=7)
+        ax.text(0.38, 4.38, "→ ADK", ha="center", fontsize=6.5,
+                color=C["input"], style="italic")
+
+        ar(ax, 2.5, 4.12, 2.5, 3.78)
+
+        # Parallel (Phase 2c)
+        bx(ax, 2.5, 3.48, 4.0, 0.50,
+           ["Phase 2c — Parallelization",
+            "ThreadPoolExecutor: 3 calls at once"],
+           C["memory"], fs=7)
+        ax.text(0.38, 3.48, "→ ADK", ha="center", fontsize=6.5,
+                color=C["memory"], style="italic")
+
+        ar(ax, 2.5, 3.22, 2.5, 2.88)
+
+        # Loop (Phase 3)
+        bx(ax, 2.5, 2.58, 4.0, 0.50,
+           ["Phase 3 — ReAct / Planning",
+            "while not done: think → act → observe"],
+           C["loop"], fs=7)
+        ax.text(0.38, 2.58, "→ ADK", ha="center", fontsize=6.5,
+                color=C["loop"], style="italic")
+
+        ar(ax, 2.5, 2.32, 2.5, 1.98)
+
+        # Sub-agents (Phase 6a)
+        bx(ax, 2.5, 1.68, 4.0, 0.50,
+           ["Phase 6a — Multi-Agent",
+            "root.delegate(sub_agent, task)"],
+           C["tools"], fs=7)
+        ax.text(0.38, 1.68, "→ ADK", ha="center", fontsize=6.5,
+                color=C["tools"], style="italic")
+
+        ax.text(2.5, 0.48, "every pattern written as imperative Python  ·  you own all orchestration",
+                ha="center", fontsize=6.5, color=C["dim"], style="italic")
+
+        # ── RIGHT — ADK agent types ────────────────────────────────────────────
+        ax = axes[1]
+        ax.add_patch(FancyBboxPatch((0, 5.0), 5, 0.38, boxstyle="round,pad=0.05",
+                                    facecolor=C["agent_yes"], edgecolor="white", lw=1.5, zorder=2))
+        ax.text(2.5, 5.19, "Google ADK — same patterns as typed agent classes",
+                ha="center", va="center", fontsize=8.5, color="white", fontweight="bold")
+
+        # SequentialAgent
+        bx(ax, 2.5, 4.38, 4.2, 0.50,
+           ["SequentialAgent(sub_agents=[A, B, C])",
+            "runs A → B → C in order, passing output"],
+           C["input"], fs=7)
+        ax.text(0.38, 4.38, "≡ 2a", ha="center", fontsize=8,
+                color=C["input"], fontweight="bold")
+
+        ar(ax, 2.5, 4.12, 2.5, 3.78, col=C["arrow"])
+
+        # ParallelAgent
+        bx(ax, 2.5, 3.48, 4.2, 0.50,
+           ["ParallelAgent(sub_agents=[A, B, C])",
+            "runs A, B, C concurrently, merges results"],
+           C["memory"], fs=7)
+        ax.text(0.38, 3.48, "≡ 2c", ha="center", fontsize=8,
+                color=C["memory"], fontweight="bold")
+
+        ar(ax, 2.5, 3.22, 2.5, 2.88, col=C["arrow"])
+
+        # LoopAgent
+        bx(ax, 2.5, 2.58, 4.2, 0.50,
+           ["LoopAgent(sub_agent=A, max_iterations=5)",
+            "loops A until escalate_to_parent=True"],
+           C["loop"], fs=7)
+        ax.text(0.38, 2.58, "≡ 3", ha="center", fontsize=8,
+                color=C["loop"], fontweight="bold")
+
+        ar(ax, 2.5, 2.32, 2.5, 1.98, col=C["arrow"])
+
+        # Runner
+        bx(ax, 2.5, 1.68, 4.2, 0.50,
+           ["Runner(agent=root, session_service=InMemorySessionService())",
+            "executes agent + manages sessions + events"],
+           C["agent_yes"], fs=7)
+        ax.text(0.38, 1.68, "Infra", ha="center", fontsize=7,
+                color=C["agent_yes"], fontweight="bold")
+
+        ax.text(2.5, 0.48,
+                "ADK provides: typed orchestration  ·  session service  ·  event streaming",
+                ha="center", fontsize=6.5, color=C["agent_yes"], style="italic")
+
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png", dpi=150, bbox_inches="tight",
+                    facecolor=fig.get_facecolor())
+        buf.seek(0); plt.close(fig)
+        return buf.getvalue()
+
     return (diagram_langgraph_workflows, diagram_langgraph_agents,
-            diagram_langsmith, diagram_langchain, diagram_framework_compare)
+            diagram_langsmith, diagram_langchain, diagram_framework_compare,
+            diagram_google_adk)

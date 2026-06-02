@@ -229,7 +229,7 @@ st.markdown("""
 
 # ── Stats ──────────────────────────────────────────────────────────────────────
 total    = 40
-complete = 29   # Ph0(3)+Ph1(1)+Ph2(5)+Ph3(4)+Ph4(4)+Ph5(2)+Ph6(4)+Ph7(3)+Ph8a(2)+Ph9(1)
+complete = 30   # Ph0(3)+Ph1(1)+Ph2(5)+Ph3(4)+Ph4(4)+Ph5(2)+Ph6(4)+Ph7(3)+Ph8a(2)+Ph9(1)+Ph10e(1)
 in_prog  = 0
 coming   = total - complete - in_prog
 pct      = int(complete / total * 100)
@@ -483,7 +483,7 @@ grid(
          "Frameworks", "b-fw", "pcard-future", "#B47FFF"),
     card("10e", "Google ADK",
          "Sequential · parallel · loop agents · sub-agent delegation",
-         "Frameworks", "b-fw", "pcard-future", "#B47FFF"),
+         "Frameworks", "b-fw", "pcard-complete", "#B47FFF"),
     card("10f", "Framework Comparison",
          "LangGraph vs ADK vs raw SDK · decision guide · trade-offs",
          "Frameworks", "b-fw", "pcard-future", "#B47FFF"),
