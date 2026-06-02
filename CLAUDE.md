@@ -81,6 +81,9 @@ utils/
   llm.py                # Gemini wrapper — model, retry logic, chat helpers
   tools.py              # Real tools: weather, stock, units, country, holidays, joke
   diagrams.py           # Progressive evolution diagrams (matplotlib → PNG → st.image)
+                        #   imports _diagram_phase10 via _ph10_diagrams() factory
+  _diagram_phase10.py   # Phase 10 diagram functions (LangGraph, LangSmith, LangChain, ADK, Compare)
+                        #   Always restart Streamlit after editing this file (module cache)
 .env                    # Your API key (gitignored)
 .env.example            # Template to copy
 ```
@@ -393,6 +396,7 @@ docs: <what doc was updated>                    ← docs only
 | Page file | Module | Status |
 |---|---|---|
 | `04a_Customer_Support.py` | Customer Support Agent — full pipeline: 4a+5b+5a+3a+4c+4b+7a combined | ✅ Complete |
+| `04a1_Elite_Agent.py` | Elite Multi-Agent System — 8a.1 extended build | ✅ Complete |
 | `04b_Coding_Agent.py` | Coding Agent — GitHub issue → fix → test → iterate | 🔜 |
 
 ### Phase 9 — Best Practices  (Anthropic Appendix 2)
@@ -460,3 +464,23 @@ production-critical and actively deployed in 2025:
 3. **History validation error** — SDK requires `parts: [{"text": "..."}]` not `parts: "..."` — fixed in `_to_sdk_history()`
 4. **Deprecated SDK** — migrated from `google-generativeai` → `google-genai`; old package still installed but not imported
 5. **Diagram/code mismatch** — 1c diagram showed memory; code had none; fixed by adding full persistent history to 1c
+
+## Phase 10 — Technical Notes
+
+- **`google-adk` is NOT installed** — `requirements.txt` does not include it. Phase 10e (`06e_GoogleADK.py`) teaches ADK concepts using `st.code()` side-by-side with runnable raw Gemini SDK equivalents. Do not add `google-adk` as a dependency without explicit user instruction.
+- **Phase 10 diagrams** live in `utils/_diagram_phase10.py` and are injected into `utils/diagrams.py` via the `_ph10_diagrams()` factory tuple (currently 6 functions). When adding a new Phase 10 diagram, append it to that tuple and unpack it in `diagrams.py`. Always restart Streamlit after editing `_diagram_phase10.py`.
+- **`04a1_Elite_Agent.py`** (8a.1 — Elite Multi-Agent System) is present in `app.py` nav and fully built but was not in the original Anthropic curriculum — it is an extended build on top of 8a.
+
+## Deferred Work — Home Page Redesign (pages/00a_Home.py)
+
+Five targeted changes identified but NOT yet implemented. When user says "do the home page redesign", implement all of these:
+
+1. Add 3-tier visual scaffold (Foundation / Frameworks / Platforms) under the hero section
+2. Group phases 0–9 in one bounded block, Phase 10 its own, Phase 11 its own
+3. Replace "0 In Progress" stat card with "10 Quiz Phases Available"
+4. Fix 4 stale bugs:
+   - Duplicate Step 2/3 in the recommended learning path
+   - Phase 10a–d still show `pcard-future`/`b-fw` CSS despite being complete
+   - `pcard-done` CSS class used in template but actual class is `pcard-complete`
+   - Phase 10 section header still says "after all patterns mastered" (outdated tone)
+5. Replace the 3-step recommended path box with a single "Continue where you left off" card
