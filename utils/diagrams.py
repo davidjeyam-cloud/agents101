@@ -13,7 +13,7 @@ import matplotlib.patheffects as pe
 
 # ── Colour palette ─────────────────────────────────────────────────────────────
 C = {
-    "bg":        "#F0F4F8",
+    "bg":        "#F5F7FA",   # matches config.toml backgroundColor
     "input":     "#2471A3",   # blue       — user input
     "llm":       "#1A252F",   # dark navy  — LLM core
     "output":    "#1E8449",   # green      — output
@@ -89,20 +89,33 @@ def _note(ax, x, y, text, color="#5D6D7E", fontsize=7.8):
 
 def _agent_banner(ax, is_agent: bool, why: str):
     """
-    Top banner: shows AGENT STATUS for this diagram.
-    is_agent=True → green AGENT ✓ bar
-    is_agent=False → red  NOT AN AGENT bar  + reason
+    Full-width two-line status banner at the top of every diagram.
+    Line 1: large AGENT STATUS label.
+    Line 2: shorter reason text.
+    No emoji — DejaVu Sans (matplotlib default on Windows) lacks emoji glyphs.
     """
-    color  = C["agent_yes"] if is_agent else C["agent_no"]
-    icon   = "🤖  AGENT ✓"   if is_agent else "⚠   NOT AN AGENT"
-    patch = FancyBboxPatch((0.1, 4.05), 6.8, 0.28,
-                           boxstyle="round,pad=0.06",
-                           facecolor=color, edgecolor="white",
-                           linewidth=1.5, zorder=6)
+    color = C["agent_yes"] if is_agent else C["agent_no"]
+    label = "AGENT  v" if is_agent else "NOT AN AGENT"
+
+    # Full-width rectangle flush to top of axes (y=4.02 to 4.4)
+    patch = FancyBboxPatch(
+        (0.0, 4.02), W, 0.38,
+        boxstyle="square,pad=0.0",
+        facecolor=color, edgecolor="none",
+        linewidth=0, zorder=6,
+    )
     ax.add_patch(patch)
-    ax.text(W/2, 4.19, f"{icon}  —  {why}",
-            ha="center", va="center", fontsize=8.5,
+
+    # Line 1 — status label
+    ax.text(W / 2, 4.28, label,
+            ha="center", va="center", fontsize=10,
             color="white", fontweight="bold", zorder=7)
+
+    # Line 2 — reason (truncate at 88 chars to prevent right-edge overflow)
+    why_text = why if len(why) <= 88 else why[:85] + "..."
+    ax.text(W / 2, 4.11, why_text,
+            ha="center", va="center", fontsize=7.2,
+            color="white", zorder=7)
 
 
 def _agent_def_footer(ax, highlight_word: str = ""):
@@ -129,7 +142,7 @@ _STOPS = [
     ("4a",  "4a",   "4a\nCust.Sup."),
     ("4b",  "4b",   "4b\nCoding"),
     ("Ph5", "Ph5",  "Phase 5\nBest Prac."),
-    ("end", "🤖",   "🤖\nAgent"),
+    ("end", "AI",   "AI\nAgent"),
 ]
 
 
@@ -219,7 +232,7 @@ def diagram_1a() -> bytes:
 
     # ── Limitation ────────────────────────────────────────────────────────────
     _note(ax, W/2, 0.82,
-          "⚠  No memory · no tools · no loop — cannot act autonomously",
+          "No memory · no tools · no loop — cannot act autonomously",
           color=C["agent_no"])
 
     _agent_def_footer(ax)
@@ -261,7 +274,7 @@ def diagram_1b() -> bytes:
            fontsize=7.5)
 
     _note(ax, W/2, 0.7,
-          "✓  Model remembers context  ·  ⚠  but YOU still decide when & what to ask",
+          "Model remembers context  ·  but YOU still decide when & what to ask",
           color=C["note_ok"])
 
     _agent_def_footer(ax)
@@ -298,7 +311,7 @@ def diagram_1c() -> bytes:
 
     # ── Tools (new) ───────────────────────────────────────────────────────────
     _box(ax, 5.05, 1.4,
-         "Tools  (NEW ✚)\n🌤 Weather  📈 Stock\n🌍 Country  🎉 Holidays  📐 Units",
+         "Tools  (NEW)\nWeather  Stock  Prices\nCountry  Holidays  Units",
          C["tools"], w=2.8, h=0.72, fontsize=8)
 
     _bidir(ax, 4.25, 2.22, 4.8, 1.72,
@@ -309,7 +322,7 @@ def diagram_1c() -> bytes:
            fontsize=7.5)
 
     _note(ax, W/2, 0.7,
-          "✓  LLM decides WHAT tool  ·  ⚠  but no loop — it acts once and stops",
+          "LLM decides WHAT tool  ·  but no loop — it acts once and stops",
           color=C["note_ok"])
 
     _agent_def_footer(ax)
@@ -326,7 +339,7 @@ def diagram_1d() -> bytes:
     _agent_banner(ax, is_agent=True,
                   why="LLM decides its OWN next step (call tool / stop) — that is agency")
 
-    ax.text(W/2, 3.75, "1d — Mini Agent  🤖  (this is where Agentic AI begins)",
+    ax.text(W/2, 3.75, "1d — Mini Agent  (this is where Agentic AI begins)",
             ha="center", fontsize=11, fontweight="bold", color="#1C2833")
     ax.text(W/2, 3.5,
             "Model drives its own loop · thinks · acts · observes · decides when to stop",
@@ -341,7 +354,7 @@ def diagram_1d() -> bytes:
     _arrow(ax, 4.45, 2.2, 5.47, 2.2, label="done ✓")
 
     # ── AGENT badge pinned ON the LLM box ─────────────────────────────────────
-    _badge(ax, 3.5, 2.72, "🤖  Acting as AGENT", C["agent_yes"], fontsize=8)
+    _badge(ax, 3.5, 2.72, "ACTING AS AGENT", C["agent_yes"], fontsize=8)
 
     # ── Tool execution ────────────────────────────────────────────────────────
     _box(ax, 3.5, 1.1, "Execute Tool\n(Python code — your control)",
@@ -515,7 +528,7 @@ def diagram_2c() -> bytes:
                                facecolor=banner_color, edgecolor="white",
                                linewidth=1.5, zorder=6)
         ax.add_patch(patch)
-        ax.text(2.5, 4.37, "⚠  NOT AN AGENT — YOUR code runs the parallel calls",
+        ax.text(2.5, 4.37, "NOT AN AGENT — YOUR code runs the parallel calls",
                 ha="center", va="center", fontsize=7.5,
                 color="white", fontweight="bold", zorder=7)
 
@@ -689,7 +702,7 @@ def diagram_2d() -> bytes:
 
     # ── NOT agent note ────────────────────────────────────────────────────────
     ax.text(W/2, 1.42,
-            "⚠  Not an agent: plan made ONCE upfront. Worker results don't change the plan.",
+            "Not an agent: plan made ONCE upfront. Worker results don't change the plan.",
             ha="center", fontsize=7.5, color=C["agent_no"], style="italic")
 
     _journey_bar(ax, current="2d", y=0.96)
@@ -773,7 +786,7 @@ def diagram_3() -> bytes:
     _agent_banner(ax, is_agent=True,
                   why="Model decides every next step — calls tools, observes results, decides when done")
 
-    ax.text(W/2, 3.75, "Phase 3a — ReAct Agent  🤖",
+    ax.text(W/2, 3.75, "Phase 3a — ReAct Agent",
             ha="center", fontsize=12, fontweight="bold", color="#1C2833")
     ax.text(W/2, 3.5,
             "No predefined structure · model plans, acts, observes and loops until it decides the goal is met",
@@ -789,7 +802,7 @@ def diagram_3() -> bytes:
                                facecolor="#EAF4EC", edgecolor=C["agent_yes"],
                                linewidth=2.5, zorder=1)
     ax.add_patch(agent_box)
-    ax.text(0.55, 2.54, "🤖  AUTONOMOUS AGENT",
+    ax.text(0.55, 2.54, "AUTONOMOUS AGENT",
             ha="left", fontsize=8, color=C["agent_yes"], fontweight="bold")
 
     # ── ReAct triangle: Think → Act → Observe ─────────────────────────────────
@@ -834,7 +847,7 @@ def diagram_3b() -> bytes:
     _agent_banner(ax, is_agent=True,
                   why="Still an agent — guardrails are safety wrappers, not replacements for agency")
 
-    ax.text(W/2, 3.75, "Phase 4a — Guardrails  🛡️",
+    ax.text(W/2, 3.75, "Phase 4a — Guardrails",
             ha="center", fontsize=12, fontweight="bold", color="#1C2833")
     ax.text(W/2, 3.5,
             "Safety layers wrap the agent · input checked before the model · output checked before the user",
@@ -850,7 +863,7 @@ def diagram_3b() -> bytes:
                                facecolor="#FDEDEC", edgecolor=C["agent_no"],
                                linewidth=2.0, zorder=2)
     ax.add_patch(inp_patch)
-    ax.text(3.5, 2.42, "🛡️  INPUT GUARDRAIL",
+    ax.text(3.5, 2.42, "INPUT GUARDRAIL",
             ha="center", fontsize=9, color=C["agent_no"], fontweight="bold", zorder=3)
     ax.text(3.5, 2.2,
             "PII detection (regex)  ·  Prompt injection (LLM)  ·  Jailbreak (LLM)  ·  Harmful content (LLM)",
@@ -865,7 +878,7 @@ def diagram_3b() -> bytes:
     _arrow(ax, 3.5, 2.08, 3.5, 1.92, label="PASS ✓", color=C["agent_yes"])
 
     # ── Agent ─────────────────────────────────────────────────────────────────
-    _box(ax, 3.5, 1.65, "🤖  Autonomous Agent", C["agent_yes"], w=2.8, h=0.46)
+    _box(ax, 3.5, 1.65, "Autonomous Agent", C["agent_yes"], w=2.8, h=0.46)
 
     _arrow(ax, 3.5, 1.42, 3.5, 1.26, label="response", color=C["agent_yes"])
 
@@ -875,7 +888,7 @@ def diagram_3b() -> bytes:
                                facecolor="#FEF9E7", edgecolor=C["tools"],
                                linewidth=2.0, zorder=2)
     ax.add_patch(out_patch)
-    ax.text(3.5, 1.04, "🛡️  OUTPUT GUARDRAIL",
+    ax.text(3.5, 1.04, "OUTPUT GUARDRAIL",
             ha="center", fontsize=9, color=C["tools"], fontweight="bold", zorder=3)
     ax.text(3.5, 0.84,
             "PII leak (regex)  ·  Policy compliance (LLM)  ·  Sensitive info check (LLM)",
@@ -883,7 +896,7 @@ def diagram_3b() -> bytes:
 
     # ── Flag path (output fails) ───────────────────────────────────────────────
     _arrow(ax, 6.38, 0.96, 6.38, 0.38, color=C["tools"])
-    ax.text(6.38, 0.26, "FLAGGED\n⚠", ha="center", fontsize=7.5,
+    ax.text(6.38, 0.26, "FLAGGED\n!", ha="center", fontsize=7.5,
             color=C["tools"], fontweight="bold")
 
     _arrow(ax, 3.5, 0.72, 3.5, 0.5, color=C["output"])
@@ -906,7 +919,7 @@ def diagram_3c() -> bytes:
     _agent_banner(ax, is_agent=True,
                   why="Agent pauses at checkpoints — human judgment overrides automation for high-stakes decisions")
 
-    ax.text(W/2, 3.75, "Phase 4b — Human-in-the-Loop (HITL)  👤",
+    ax.text(W/2, 3.75, "Phase 4b — Human-in-the-Loop (HITL)",
             ha="center", fontsize=12, fontweight="bold", color="#1C2833")
     ax.text(W/2, 3.5,
             "Agent runs autonomously · pauses at risk checkpoints · human decides · agent resumes or stops",
@@ -943,7 +956,7 @@ def diagram_3c() -> bytes:
                                 facecolor="#FDEDEC", edgecolor=C["loop"],
                                 linewidth=2.2, zorder=2)
     ax.add_patch(hitl_patch)
-    ax.text(3.0, 1.3, "👤  HUMAN REVIEW  —  Approve / Reject / Modify",
+    ax.text(3.0, 1.3, "HUMAN REVIEW  —  Approve / Reject / Modify",
             ha="center", va="center", fontsize=9,
             color=C["loop"], fontweight="bold", zorder=3)
     ax.text(3.0, 1.05, "Human sees: agent's reasoning · proposed action · risk factors · draft response",
@@ -975,7 +988,7 @@ def diagram_3d() -> bytes:
     _agent_banner(ax, is_agent=True,
                   why="Agent decides when to search, what to search for, and how many times")
 
-    ax.text(W/2, 3.75, "Phase 5a — RAG Agent  📚  (Retrieval-Augmented Generation)",
+    ax.text(W/2, 3.75, "Phase 5a — RAG Agent  (Retrieval-Augmented Generation)",
             ha="center", fontsize=11, fontweight="bold", color="#1C2833")
     ax.text(W/2, 3.5,
             "Agent searches a knowledge base before answering · responses grounded in real documents",
@@ -986,7 +999,7 @@ def diagram_3d() -> bytes:
     _arrow(ax, 1.0, 2.77, 1.0, 2.28, color=C["dim"])
     _box(ax, 1.0, 2.05, "LLM only\n(training data)", C["dim"], w=1.5, h=0.46)
     _arrow(ax, 1.0, 1.82, 1.0, 1.38, color=C["dim"])
-    ax.text(1.0, 1.22, "⚠ Hallucination\nrisk — no domain\nknowledge",
+    ax.text(1.0, 1.22, "! Hallucination\nrisk — no domain\nknowledge",
             ha="center", fontsize=7.5, color=C["agent_no"],
             fontweight="bold", multialignment="center")
     ax.text(1.0, 3.28, "Without RAG", ha="center", fontsize=8,
@@ -1339,7 +1352,7 @@ def diagram_3f() -> bytes:
                        boxstyle="round,pad=0.05",
                        facecolor=C["agent_yes"], edgecolor="white", lw=1.5, zorder=4)
     ax.add_patch(p)
-    ax.text(2.5, 4.4, "🤖  AGENT  ✓  —  Variant A: Self-Reflection",
+    ax.text(2.5, 4.4, "AGENT  v  —  Variant A: Self-Reflection",
             ha="center", va="center", fontsize=8.5,
             color="white", fontweight="bold", zorder=5)
 
@@ -1352,7 +1365,7 @@ def diagram_3f() -> bytes:
 
     # LLM (centre — same model for both generate + reflect)
     bx(ax, 2.5, 2.55, 3.0, 0.65,
-       ["🧠  LLM (same model)",
+       ["LLM (same model)",
         "plays BOTH roles: Generate + Reflect"],
        C["llm"], lw=2.5, fs=8)
 
@@ -1397,7 +1410,7 @@ def diagram_3f() -> bytes:
                         boxstyle="round,pad=0.05",
                         facecolor=C["agent_yes"], edgecolor="white", lw=1.5, zorder=4)
     ax.add_patch(p2)
-    ax.text(2.5, 4.4, "🤖  AGENT  ✓  —  Variant B: External Validation",
+    ax.text(2.5, 4.4, "AGENT  v  —  Variant B: External Validation",
             ha="center", va="center", fontsize=8.5,
             color="white", fontweight="bold", zorder=5)
     ax.text(2.5, 4.1, "LLM generates · tool validates · LLM reflects on result",
@@ -1505,7 +1518,7 @@ def diagram_overview() -> bytes:
 
         # Agent status strip at top
         status_color = C["agent_yes"] if p["agent"] else C["agent_no"]
-        status_text  = "🤖 AGENT ✓" if p["agent"] else "⚠ Not an Agent"
+        status_text  = "AGENT v" if p["agent"] else "Not an Agent"
         strip = FancyBboxPatch((0.0, 0.87), 1.0, 0.13,
                                boxstyle="round,pad=0.02",
                                facecolor=status_color, edgecolor="white",
@@ -1804,7 +1817,7 @@ def diagram_evals() -> bytes:
     _agent_banner(ax, is_agent=False,
                   why="YOUR testing pipeline runs the agent — the agent under test is not in control here")
 
-    ax.text(W/2, 3.75, "Phase 4d — Evaluation Framework  📊",
+    ax.text(W/2, 3.75, "Phase 4d — Evaluation Framework",
             ha="center", fontsize=12, fontweight="bold", color="#1C2833")
     ax.text(W/2, 3.5,
             "Golden dataset  ·  agent answers each  ·  Judge scores each  ·  metrics aggregated",
