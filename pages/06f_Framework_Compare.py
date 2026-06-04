@@ -70,6 +70,8 @@ to justify the dependency.
 | 3 | **LangChain LCEL** | Pipe syntax for chains, streaming/batching on any chain, Chroma RAG retriever | Extra dependency, abstraction over retriever internals, less control over embedding calls |
 | 4 | **LangSmith** | Auto-tracing every call, datasets, LLM-as-Judge evals, cost/latency dashboards | Requires LangChain/LangGraph integration, external service dependency |
 | 5 | **Google ADK** | Managed multi-agent on Google Cloud, built-in A2A, deployment infrastructure | Strong Google Cloud vendor lock-in, higher operational overhead |
+| 6 | **CrewAI** (Phase 10g) | Role-based crews in ~20 lines; sequential/hierarchical process built-in; quick prototyping | Less fine-grained control than LangGraph; harder to debug mid-crew; abstraction hides agent communication |
+| 7 | **AutoGen / AG2** | Conversational multi-agent debates; group chats; consensus-building between agents | High token cost per turn (every agent sees full conversation); Microsoft deprecated v1 in favour of AG2 |
 
 **The hidden cost that tables don't show:**
 
@@ -234,6 +236,18 @@ with tab_guide:
             "I want automatic tracing, a visual dashboard, and LLM-as-Judge evals "
             "run against a golden dataset without writing the eval loop myself."
         ),
+        "Multi-agent team — quick prototype, role-based": (
+            "I need a multi-agent system with 3-4 specialised agents (researcher, analyst, writer). "
+            "Each agent has a distinct role and should stay in character. "
+            "I want to prototype quickly — willing to sacrifice fine-grained control for speed. "
+            "Sequential execution is fine for now."
+        ),
+        "Conversational agent debate — consensus from multiple LLMs": (
+            "I need multiple AI agents to debate a complex question and reach consensus. "
+            "Each agent has a different perspective. "
+            "I want them to exchange messages in a group chat until they agree. "
+            "Research/experimentation environment, not production."
+        ),
     }
 
     preset = st.selectbox("Pick a scenario or describe your own:", list(SCENARIOS.keys()))
@@ -261,6 +275,8 @@ The frameworks available are:
 3. LangChain LCEL — pipe syntax for chains, streaming, RAG retriever integration.
 4. LangSmith — observability layer: auto-tracing, datasets, evals. Wraps LangGraph/LCEL.
 5. Google ADK — managed multi-agent platform on Google Cloud infrastructure.
+6. CrewAI — role-based multi-agent crews; sequential/hierarchical process; quick prototyping.
+7. AutoGen/AG2 — conversational multi-agent debates; group chats; consensus-building.
 
 Your recommendation must be specific: name exactly which framework(s) to use and which to skip.
 Explain the single most important reason to add each recommended framework.
@@ -269,7 +285,7 @@ End with a one-sentence 'start here' instruction."""
 
                 user_msg = (
                     f"My requirements:\n{requirements}\n\n"
-                    "Recommend which frameworks to use (from the 5 above), which to skip, and why.\n"
+                    "Recommend which frameworks to use (from the 7 above), which to skip, and why.\n"
                     "Be direct and opinionated. Use this format:\n\n"
                     "**Recommended stack:** [list frameworks]\n"
                     "**Skip:** [list what to skip and why]\n\n"

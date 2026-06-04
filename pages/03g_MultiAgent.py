@@ -738,6 +738,62 @@ Phase 6a sub-agent: "Handle this complaint." (sub-agent decides HOW to handle it
 """)
 
 st.markdown("---")
+
+with st.expander("🐝 Advanced topology — Agent Swarms (2026 emerging pattern)"):
+    st.markdown("""
+Phase 6a uses a **centralised orchestrator** — one root agent coordinates all sub-agents.
+Agent Swarms are a fundamentally different topology: **no central coordinator**.
+Each agent acts independently on local information, and collective behaviour emerges.
+
+**The three multi-agent topologies:**
+
+| Topology | Coordinator | How decisions are made | When to use |
+|---|---|---|---|
+| **Orchestrator-Workers** (Phase 2d) | Central orchestrator | Orchestrator plans and assigns | Known, fixed workflow |
+| **Root + Sub-Agents** (Phase 6a, this page) | Root agent with LLM reasoning | Root delegates based on task content | Dynamic routing, specialist agents |
+| **Swarm** | None — fully decentralised | Each agent acts independently; results aggregated | Massively parallel, fault-tolerant tasks |
+
+**How a Swarm works:**
+
+```
+Question ──► Agent 1 ──► Partial answer
+         ──► Agent 2 ──► Partial answer   ──► Aggregator ──► Final answer
+         ──► Agent 3 ──► Partial answer
+         ──► Agent N ──► Partial answer
+```
+
+- All N agents receive the same task simultaneously
+- Each agent works independently, no cross-communication
+- An aggregator (could be another LLM) merges all partial answers
+- Individual agent failures do not stop the swarm
+
+**When swarms outperform orchestrators:**
+
+| Scenario | Why swarm wins |
+|---|---|
+| **Document review at scale** | 100 agents each review 1 document — 100x faster than sequential |
+| **Ensemble reasoning** | Multiple agents reason independently — vote on answer removes hallucination bias |
+| **Fault tolerance needed** | If 10% of agents fail, 90% still complete — no single point of failure |
+| **Embarrassingly parallel tasks** | No dependencies between sub-tasks — no benefit to coordination overhead |
+
+**When orchestrators outperform swarms:**
+
+| Scenario | Why orchestrator wins |
+|---|---|
+| **Sequential pipeline** | Step N depends on output of step N-1 — swarm cannot handle dependencies |
+| **Dynamic routing** | Different sub-tasks need different specialists — orchestrator picks the right one |
+| **State management** | Complex shared state across steps — central coordinator tracks it correctly |
+
+**2026 scale:** Kimi K2.6 demonstrated coordinating up to 1,000 parallel agents on a single task.
+The practical barrier is cost — N LLM calls per task, but cost per token keeps falling.
+
+**Relation to this course:**
+- Phase 6a Tab B (Parallel Specialists) is the simplest form of a swarm — fan-out + merge
+- True swarms add: agent-level routing, fault tolerance, voting/aggregation logic
+- CrewAI (Phase 10g) supports swarm-style execution with `Process.hierarchical`
+""")
+
+st.markdown("---")
 st.markdown("### What's next -> Phase 6b: MCP Protocol")
 st.markdown(
     "Multi-agent pattern is clear -- now standardise HOW agents connect to tools. "

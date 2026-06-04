@@ -65,6 +65,7 @@ pg = st.navigation({
         st.Page("pages/04a_Customer_Support.py",  title="8a — Customer Support Agent"),
         st.Page("pages/04a1_Elite_Agent.py",      title="8a.1 — Elite Multi-Agent System"),
         st.Page("pages/04b_Coding_Agent.py",      title="8b — Coding Agent 🔜"),
+        st.Page("pages/04c_ComputerUse.py",       title="8c — Computer Use Agents"),
     ],
     "Phase 9 — Best Practices": [
         st.Page("pages/05_Best_Practices.py", title="9 — Best Practices"),
@@ -75,6 +76,7 @@ pg = st.navigation({
         st.Page("pages/06c_LangSmith.py",           title="10c — LangSmith"),
         st.Page("pages/06d_LangChain.py",           title="10d — LangChain"),
         st.Page("pages/06e_GoogleADK.py",           title="10e — Google ADK"),
+        st.Page("pages/06g_CrewAI.py",              title="10g — CrewAI"),
         st.Page("pages/06f_Framework_Compare.py",   title="10f — Framework Compare"),
     ],
     "Phase 11 — Managed Platforms": [

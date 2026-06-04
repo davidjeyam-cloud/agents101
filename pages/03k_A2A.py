@@ -38,6 +38,176 @@ with st.expander("📖 What is A2A and how does it differ from MCP?"):
     **They are complementary:** use MCP for tools, A2A for delegating to other agents.
     """)
 
+with st.expander("🏗️ A2A Architecture — client-server model and Agent Cards"):
+    st.markdown("""
+**Why A2A was needed — the problem it solves:**
+
+Before A2A, every agent-to-agent integration was custom code. If you had three agents from
+three teams, each needed bespoke connectors. A2A defines a standard so any A2A-compliant
+agent can talk to any other — the same way HTTP standardised web communication.
+
+**Client-Server model:**
+
+| Role | What it does | Analogy |
+|---|---|---|
+| **A2A Server** | Exposes its capabilities, accepts tasks, streams results | A microservice with an API |
+| **A2A Client** | Discovers servers, submits tasks, reads streamed results | A caller of that API |
+| **Orchestrator** | Acts as both — client to sub-agents, server to its own caller | A middle-tier service |
+
+**Agent Card — the discovery contract:**
+
+The Agent Card at `/.well-known/agent.json` is how a client learns what an agent can do
+before sending it anything. It is the A2A equivalent of an OpenAPI spec.
+
+```json
+{
+  "name": "NexaBank Fraud Agent",
+  "url": "https://agents.nexabank.com/fraud",
+  "version": "1.0",
+  "capabilities": { "streaming": true, "pushNotifications": false },
+  "skills": [
+    { "id": "fraud_report",  "name": "Report Fraud",        "description": "Handle suspected fraud" },
+    { "id": "app_fraud",     "name": "APP Fraud PSR 2023",  "description": "Authorised push payment reimbursement" }
+  ],
+  "authentication": { "schemes": ["Bearer"] }
+}
+```
+
+**Four things the Agent Card declares:**
+1. **Identity** — name, URL, version
+2. **Capabilities** — streaming support, push notifications
+3. **Skills** — discrete tasks this agent can perform (like MCP tools, but for agent delegation)
+4. **Authentication** — how callers must authenticate
+
+**Key distinction — Skills vs MCP Tools:**
+
+| | MCP Tool | A2A Skill |
+|---|---|---|
+| Executed by | Your code (deterministic) | Another autonomous agent (LLM reasoning) |
+| Response type | Structured return value | Natural language + artifacts |
+| Mid-task input | Not possible | Yes — agent can pause and ask |
+| Example | `get_weather("London")` → JSON | `"Handle fraud case #1234"` → agent decides steps |
+""")
+
+with st.expander("📋 Task Lifecycle — the six states every A2A task moves through"):
+    st.markdown("""
+Every A2A task has an explicit lifecycle. The server streams state updates so the client
+always knows exactly where the task is.
+
+```
+submitted ──► working ──► completed
+                │
+                ├──► input-required ──► (client sends input) ──► working
+                │
+                ├──► failed
+                │
+                └──► cancelled
+```
+
+| State | Meaning | Client action |
+|---|---|---|
+| `submitted` | Task received, queued | Wait |
+| `working` | Agent is actively processing | Stream artifacts as they arrive |
+| `input-required` | Agent is blocked — needs more info from client | Send a follow-up message |
+| `completed` | Final artifact delivered | Read result, close stream |
+| `failed` | Agent hit an unrecoverable error | Inspect error, retry or escalate |
+| `cancelled` | Client or server cancelled the task | Clean up |
+
+**Why `input-required` matters — human-in-the-loop over A2A:**
+
+This state enables a genuinely agentic pattern: the sub-agent decides mid-task that it needs
+clarification. The orchestrator can route that back to a human (HITL — Phase 4b) and then
+resume the sub-agent with the answer. Basic RPC calls cannot do this.
+
+**Streaming events the server sends:**
+
+| Event type | When | Payload |
+|---|---|---|
+| `status-update` | State changes | `{"state": "working"}` |
+| `artifact` | Partial or final output | `{"parts": [{"type": "text", "text": "..."}]}` |
+| `error` | Failure details | `{"code": 500, "message": "..."}` |
+""")
+
+with st.expander("🔄 Sequential Chaining and Hierarchical Workflows"):
+    st.markdown("""
+A2A enables two multi-agent composition patterns beyond simple single-hop delegation.
+
+**Sequential Chaining — output of one agent becomes input of next:**
+
+```
+Client
+  └─► Agent A (Research)     ──artifact──►  Agent B (Summarise)  ──artifact──► Client
+        submitted/working/completed          submitted/working/completed
+```
+
+Each agent in the chain is independent — they do not share memory or context.
+The orchestrator explicitly passes Agent A's completed artifact as Agent B's task input.
+This mirrors Phase 2a (Prompt Chaining) but with autonomous agents at each step instead of raw LLM calls.
+
+**Hierarchical Workflows — multi-level delegation:**
+
+```
+Root Orchestrator
+  ├─► Manager Agent A      (A2A)
+  │     ├─► Worker Agent A1  (A2A)
+  │     └─► Worker Agent A2  (A2A)
+  └─► Manager Agent B      (A2A)
+        └─► Worker Agent B1  (A2A)
+```
+
+Each level is a full A2A client-server pair. The Root sees only Manager A and Manager B —
+it does not know about the workers. This gives you:
+- **Encapsulation** — sub-teams can change their internal structure without the root knowing
+- **Scalability** — each manager can spawn workers independently
+- **Fault isolation** — one sub-tree failing does not cascade to others
+
+| Pattern | When to use |
+|---|---|
+| **Single hop** | One specialist needed, task is self-contained |
+| **Sequential chain** | Output of step N must feed step N+1 (pipeline) |
+| **Parallel fan-out** | Multiple independent sub-tasks, merge results (Phase 6a Tab B) |
+| **Hierarchical** | Complex tasks requiring sub-teams with their own coordination |
+""")
+
+with st.expander("🔒 Extensions and Security — advanced A2A concepts"):
+    st.markdown("""
+**Extensions — adding capabilities beyond the core spec:**
+
+A2A is designed to be extensible. An agent can declare non-standard capabilities in its
+Agent Card under `extensions`. Common extension patterns:
+
+| Extension type | Purpose | Example |
+|---|---|---|
+| **Push notifications** | Server pushes status updates to client webhook (no polling) | `"pushNotifications": {"url": "https://..."}` |
+| **Custom artifact types** | Return structured data beyond plain text | `{"type": "structured", "schema": {...}}` |
+| **Rate limiting hints** | Agent declares its throughput limits | `"rateLimit": {"requestsPerMinute": 60}` |
+| **Versioned skills** | Multiple versions of a skill running simultaneously | `"skillVersion": "2.1"` |
+
+**Authentication — how A2A agents verify each other:**
+
+The Agent Card declares which authentication schemes are supported.
+The client must present credentials matching one of those schemes.
+
+| Scheme | How it works | When to use |
+|---|---|---|
+| **Bearer token (JWT)** | Client sends `Authorization: Bearer <token>` | Internal microservices, service accounts |
+| **OAuth 2.0** | Full OAuth flow, short-lived access tokens | Cross-organisation agent-to-agent calls |
+| **API Key** | Simple `X-API-Key` header | Development, low-security internal use |
+| **mTLS** | Mutual certificate authentication | High-security, regulated environments |
+
+**Security threat model for A2A:**
+
+| Threat | Risk | Mitigation |
+|---|---|---|
+| **Impersonation** | Malicious agent pretends to be a legitimate sub-agent | Verify Agent Card signature / mTLS |
+| **Task injection** | Attacker crafts a task payload to hijack agent behaviour | Input validation, prompt guards on server side |
+| **Result poisoning** | Compromised sub-agent returns malicious artifacts | Output validation before trusting results |
+| **Over-delegation** | Orchestrator grants too much scope to sub-agents | Principle of least privilege in skill scoping |
+
+**Key rule:** Never trust a sub-agent's output blindly.
+Apply the same output guardrails (Phase 4a) to A2A artifacts that you apply to direct LLM responses.
+""")
+
 with st.expander("📐 Core Code Pattern -- A2A"):
     st.code('''
 # Agent Card at /.well-known/agent.json
