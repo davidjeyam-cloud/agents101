@@ -35,19 +35,19 @@ pg = st.navigation({
     ],
     "Phase 3 — Core Agent Patterns": [
         st.Page("pages/03_Agents.py",          title="3a — ReAct Agent"),
-        st.Page("pages/03f_Reflection.py",     title="3b — Reflection Agent (was 3f)"),
+        st.Page("pages/03f_Reflection.py",     title="3b — Reflection Agent"),
         st.Page("pages/03f2_Planning.py",      title="3c — Planning Agent"),
         st.Page("pages/03g2_CodeExec.py",      title="3d — Code Execution Tool"),
         st.Page("pages/03p_PatternCompare.py", title="3e — Pattern Decision Guide"),
     ],
     "Phase 4 — Trust & Safety": [
-        st.Page("pages/03b_Guardrails.py",   title="4a — Guardrails (was 3b)"),
-        st.Page("pages/03c_HITL.py",         title="4b — Human-in-the-Loop (was 3c)"),
-        st.Page("pages/03e_LLM_Judge.py",    title="4c — LLM-as-Judge (was 3e)"),
+        st.Page("pages/03b_Guardrails.py",   title="4a — Guardrails"),
+        st.Page("pages/03c_HITL.py",         title="4b — Human-in-the-Loop"),
+        st.Page("pages/03e_LLM_Judge.py",    title="4c — LLM-as-Judge"),
         st.Page("pages/03m_Evals.py",        title="4d — Evaluation Framework"),
     ],
     "Phase 5 — Knowledge & Memory": [
-        st.Page("pages/03d_RAG_Agent.py",    title="5a — RAG Agent (was 3d)"),
+        st.Page("pages/03d_RAG_Agent.py",    title="5a — RAG Agent"),
         st.Page("pages/03i_LongMemory.py",   title="5b — Long-term Memory"),
     ],
     "Phase 6 — Multi-Agent & Protocols": [
