@@ -270,8 +270,9 @@ if st.button("▶  Run Evaluator-Optimizer Loop", type="primary", key="run_2e"):
     }
 
     import pandas as pd
+    from utils.styles import CHART_COLORS
     df = pd.DataFrame(chart_data).set_index("Iteration")
-    st.line_chart(df, height=250)
+    st.line_chart(df, height=250, color=CHART_COLORS[:len(df.columns)])
 
     # Threshold reference line note
     st.caption(f"Threshold line: {threshold}  |  "

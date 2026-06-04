@@ -420,8 +420,10 @@ Write an improved response:"""
             f"Agent stopped: {'satisfied ✓' if iterations_a[-1].get('content', {}).get('satisfied') else 'max iterations'}"
         )
 
+        st.toast("✅ Reflection loop complete", icon="🤔")
+
         # ── Execution Trace ────────────────────────────────────────────────────
-        with st.expander("🔬 Execution Trace — exact prompts, raw JSON, and loop decisions"):
+        with st.expander("🔬 Execution Trace — exact prompts and raw responses"):
             st.caption(
                 "Every prompt sent to the LLM and every raw response. "
                 "Same model, two different system prompts — that is the entire mechanism of Reflection."
@@ -879,7 +881,7 @@ as part of multi-agent review pipelines for high-stakes content (legal, medical,
 The structure ensures every identified issue gets addressed, not just the most obvious ones.
 """)
 
-        with st.expander("🔬 Execution Trace — all 3 prompts and responses"):
+        with st.expander("🔬 Execution Trace — exact prompts and raw responses"):
             st.caption("The three distinct LLM calls that power Variant C, each with a different role.")
             steps = [
                 ("① Generator (Writer)", _c1_sys, _c1_user, draft_c, "warning"),

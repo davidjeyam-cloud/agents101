@@ -11,6 +11,7 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 from utils.llm import _call, MODEL
+from utils.trace import render_trace
 
 load_dotenv()
 
@@ -395,53 +396,57 @@ Together these three form a complete response quality pipeline.
 """)
 
     # ── Execution Trace ────────────────────────────────────────────────────────
-    with st.expander("🔬 Execution Trace — exact prompts, raw responses, decision logic"):
-        t_agent, t_judge, t_score = st.tabs(["① Agent LLM", "② Judge LLM", "③ Score + Routing"])
+    def _tab_agent():
+        st.markdown("**System prompt sent to the agent:**")
+        st.code(agent_trace["system"], language="text")
+        st.markdown("**User message** (includes injected context if enabled):")
+        st.code(agent_trace["user"], language="text")
+        st.markdown("**Agent raw response** (what the judge receives):")
+        st.code(agent_resp, language="text")
 
-        with t_agent:
-            st.markdown("**System prompt sent to the agent:**")
-            st.code(agent_trace["system"], language="text")
-            st.markdown("**User message sent to the agent** (includes injected context if enabled):**")
-            st.code(agent_trace["user"], language="text")
-            st.markdown("**Agent raw response** (what the judge receives):**")
-            st.code(agent_resp, language="text")
+    def _tab_judge():
+        st.markdown("**Full judge prompt** (question + agent response + optional context):")
+        st.code(judge_prompt, language="text")
+        st.markdown("**Judge raw JSON response** (before any post-processing):")
+        if judge_raw_json:
+            st.code(judge_raw_json, language="json")
+        else:
+            st.warning("Raw JSON not captured (parse error occurred).")
 
-        with t_judge:
-            st.markdown("**Full judge prompt** (question + agent response + optional context — no agent reasoning):**")
-            st.code(judge_prompt, language="text")
-            st.markdown("**Judge raw JSON response** (before any post-processing):**")
-            if judge_raw_json:
-                st.code(judge_raw_json, language="json")
-            else:
-                st.warning("Raw JSON not captured (parse error occurred).")
+    def _tab_score():
+        a, g, t_v, c_v = verdict['accuracy'], verdict['groundedness'], verdict['tone'], verdict['completeness']
+        computed = round((a + g + t_v + c_v) / 4, 1)
+        st.markdown("**Score computation — how overall is calculated:**")
+        st.code(
+            f"accuracy={a} + groundedness={g} + tone={t_v} + completeness={c_v}\n"
+            f"= {a + g + t_v + c_v} / 4\n"
+            f"= {computed}  (overall)",
+            language="text",
+        )
+        st.markdown("**Routing decision — threshold checks with real values:**")
+        st.code(
+            f"overall = {verdict['overall']}\n\n"
+            f"if overall >= 7.0:   # {verdict['overall']} >= 7.0 → {verdict['overall'] >= 7.0}\n"
+            f"    verdict = 'PASS'\n"
+            f"elif overall >= 5.0: # {verdict['overall']} >= 5.0 → {verdict['overall'] >= 5.0}\n"
+            f"    verdict = 'REVIEW'\n"
+            f"else:                # overall < 5.0  → {verdict['overall'] < 5.0}\n"
+            f"    verdict = 'FAIL'\n\n"
+            f"# Result: verdict = '{v}'",
+            language="python",
+        )
+        st.markdown("**Issues flagged by judge:**")
+        for issue in verdict.get("issues", []):
+            st.markdown(f"- {issue}")
+        if verdict.get("suggested_improvement"):
+            st.info(f"Suggested improvement: {verdict['suggested_improvement']}")
 
-        with t_score:
-            a, g, t_v, c_v = verdict['accuracy'], verdict['groundedness'], verdict['tone'], verdict['completeness']
-            computed = round((a + g + t_v + c_v) / 4, 1)
-            st.markdown("**Score computation — how overall is calculated:**")
-            st.code(
-                f"accuracy={a} + groundedness={g} + tone={t_v} + completeness={c_v}\n"
-                f"= {a + g + t_v + c_v} / 4\n"
-                f"= {computed}  (overall)",
-                language="text",
-            )
-            st.markdown("**Routing decision — threshold checks with real values:**")
-            st.code(
-                f"overall = {verdict['overall']}\n\n"
-                f"if overall >= 7.0:   # {verdict['overall']} >= 7.0 → {verdict['overall'] >= 7.0}\n"
-                f"    verdict = 'PASS'\n"
-                f"elif overall >= 5.0: # {verdict['overall']} >= 5.0 → {verdict['overall'] >= 5.0}\n"
-                f"    verdict = 'REVIEW'\n"
-                f"else:                # overall < 5.0  → {verdict['overall'] < 5.0}\n"
-                f"    verdict = 'FAIL'\n\n"
-                f"# Result: verdict = '{v}'",
-                language="python",
-            )
-            st.markdown("**Issues flagged by judge:**")
-            for issue in verdict.get("issues", []):
-                st.markdown(f"- {issue}")
-            if verdict.get("suggested_improvement"):
-                st.info(f"Suggested improvement: {verdict['suggested_improvement']}")
+    render_trace(
+        ("Agent LLM",       _tab_agent),
+        ("Judge LLM",       _tab_judge),
+        ("Score + Routing", _tab_score),
+    )
+    st.toast("✅ Judge evaluation complete", icon="🔍")
 
     st.markdown("---")
     st.markdown("### What's next → Phase 3b: Reflection Agent")

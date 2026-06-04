@@ -266,6 +266,7 @@ if st.button("▶  Run Chain", type="primary", key="run_2a"):
 Your code wired this sequence — the LLMs only processed their own step.
 This is fundamentally different from 1d where the model decided the sequence.
 """)
+    st.toast("✅ Chain complete — 3 LLM calls", icon="🔗")
 
     st.markdown("---")
     st.markdown("### What's next → Phase 2b: Routing")

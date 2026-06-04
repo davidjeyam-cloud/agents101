@@ -6,28 +6,20 @@ Verify your API key works and make your first LLM call.
 import streamlit as st
 import os
 from dotenv import load_dotenv
+from utils.styles import phase_header, ACCENT_COMPLETE
 
 load_dotenv()
 
 st.set_page_config(page_title="Phase 0 — Hello Gemini", page_icon="👋", layout="wide")
 
 # ── Phase 0 header ─────────────────────────────────────────────────────────────
-st.markdown("""
-<div style='background:linear-gradient(135deg,#0D1117 0%,#0F1A2E 100%);
-border-left:5px solid #00FF9F;border-radius:8px;padding:18px 24px;margin-bottom:24px'>
-  <div style='font-size:0.65rem;font-weight:700;letter-spacing:3px;
-              text-transform:uppercase;color:#00FF9F;margin-bottom:6px'>
-    Phase 0 &nbsp;·&nbsp; Foundations &nbsp;·&nbsp; Setup
-  </div>
-  <div style='font-size:1.7rem;font-weight:800;color:#E6EDF3;line-height:1.2'>
-    👋 Hello Gemini
-  </div>
-  <div style='font-size:0.88rem;color:#8B949E;margin-top:6px'>
-    Confirm your API key is working and make your first live LLM call.
-    Every pattern in this course runs on this one call.
-  </div>
-</div>
-""", unsafe_allow_html=True)
+st.markdown(phase_header(
+    "Phase 0 &nbsp;·&nbsp; Foundations &nbsp;·&nbsp; Setup",
+    "👋 Hello Gemini",
+    "Confirm your API key is working and make your first live LLM call. "
+    "Every pattern in this course runs on this one call.",
+    accent=ACCENT_COMPLETE,
+), unsafe_allow_html=True)
 
 # ── API key check ──────────────────────────────────────────────────────────────
 api_key = os.getenv("GEMINI_API_KEY")

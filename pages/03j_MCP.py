@@ -476,6 +476,9 @@ with tab_agent:
         question = st.text_area("Customer question:", value=TASKS_MCP[st.session_state.sel_mcp_b], height=80)
 
     if st.button("▶  Run Agent + MCP", type="primary", key="run_mcp_b"):
+        if not question.strip():
+            st.warning("Please enter a question.")
+            st.stop()
         agent_log = []
         server_b = NexaBankMCPServer()
         mcp_b = MCPClient(server_b, agent_log)

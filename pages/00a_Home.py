@@ -4,41 +4,13 @@ Professional neon-themed layout.
 """
 
 import streamlit as st
+from utils.styles import apply_theme
 
 st.set_page_config(page_title="Agentic AI Cookbook", page_icon="🤖", layout="wide")
 
-# ── Global CSS ─────────────────────────────────────────────────────────────────
+# ── Home-specific CSS (global theme injected by app.py via apply_theme) ─────────
 st.markdown("""
 <style>
-/* ── Dark background + global text colour ── */
-.stApp { background-color: #0D1117 !important; color: #E6EDF3 !important; }
-section[data-testid="stSidebar"] { background-color: #161B22 !important; }
-
-/* Sidebar text — navigation labels */
-section[data-testid="stSidebar"] * { color: #C9D1D9 !important; }
-section[data-testid="stSidebar"] [data-testid="stSidebarNavSeparator"] {
-    border-color: #30363D !important;
-}
-section[data-testid="stSidebar"] span,
-section[data-testid="stSidebar"] p,
-section[data-testid="stSidebar"] a { color: #C9D1D9 !important; }
-
-/* Main content area — native Streamlit text elements */
-.stApp p, .stApp span, .stApp label, .stApp li,
-.stApp h1, .stApp h2, .stApp h3, .stApp h4,
-.stMarkdown, .stMarkdown p, .stMarkdown li,
-[data-testid="stMarkdownContainer"] p,
-[data-testid="stMarkdownContainer"] li { color: #E6EDF3 !important; }
-
-/* Caption text */
-.stApp [data-testid="stCaptionContainer"] p { color: #8B949E !important; }
-
-/* Streamlit info / success / warning / error boxes — keep their colours */
-[data-testid="stNotification"] p { color: #1C2833 !important; }
-
-/* Expander headers */
-.streamlit-expanderHeader { color: #C9D1D9 !important; }
-.streamlit-expanderHeader:hover { color: #E6EDF3 !important; }
 
 /* ── Hero ── */
 .hero {
@@ -61,6 +33,7 @@ section[data-testid="stSidebar"] a { color: #C9D1D9 !important; }
 .hero-title {
     font-size: 2.6rem;
     font-weight: 800;
+    color: #00D4FF;
     background: linear-gradient(90deg, #00FF9F 0%, #00D4FF 50%, #B47FFF 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -115,7 +88,7 @@ section[data-testid="stSidebar"] a { color: #C9D1D9 !important; }
     gap: 12px;
     margin: 28px 0 14px 0;
 }
-.section-hdr-line { flex: 1; height: 1px; background: #21262D; }
+.section-hdr-line { flex: 1; height: 1px; background: #CBD5E0; }
 .section-hdr-text {
     color: #8B949E;
     font-size: 0.7rem;
@@ -201,7 +174,7 @@ section[data-testid="stSidebar"] a { color: #C9D1D9 !important; }
 /* ── Learning path ── */
 .path-arrow {
     text-align:center;
-    color:#3D444D;
+    color:#9CA3AF;
     font-size:1.2rem;
     margin: 4px 0;
     letter-spacing: 4px;

@@ -5,6 +5,7 @@ Run with: streamlit run app.py
 """
 
 import streamlit as st
+from utils.styles import apply_theme
 
 st.set_page_config(
     page_title="Agentic AI Cookbook",
@@ -12,6 +13,8 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+apply_theme()
 
 pg = st.navigation({
     "Phase 0 — Start Here": [

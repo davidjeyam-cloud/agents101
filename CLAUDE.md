@@ -369,7 +369,7 @@ docs: <what doc was updated>                    ← docs only
 | `03b_Guardrails.py` | Guardrails — input + output safety, PII, financial compliance | ✅ Complete |
 | `03c_HITL.py` | Human-in-the-Loop — checkpoint, approve/reject/modify | ✅ Complete |
 | `03e_LLM_Judge.py` | LLM-as-Judge — independent quality gate, PASS/REVIEW/FAIL | ✅ Complete |
-| `03m_Evals.py` | Evaluation Framework — systematic evals, test sets, metrics | 🔜 |
+| `03m_Evals.py` | Evaluation Framework — systematic evals, test sets, metrics | ✅ Complete |
 
 ### Phase 5 — Knowledge & Memory  (augmenting agents with information)
 | Page file | Module | Status |

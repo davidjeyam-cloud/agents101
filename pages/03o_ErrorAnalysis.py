@@ -260,6 +260,9 @@ with tab_diagnose:
         value="The NexaBank Diamond Plus account offers 5.2% AER with no minimum balance. You can open it instantly via the app.")
 
     if st.button("▶  Auto-Diagnose", type="primary", key="run_diagnose"):
+        if not user_q.strip() or not agent_r.strip():
+            st.warning("Please enter both a question and an agent response.")
+            st.stop()
         DIAG_SYS = """You are an expert in diagnosing AI agent failures.
 Given a question and a response, identify if there is a failure and classify it.
 

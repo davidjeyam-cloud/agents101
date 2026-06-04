@@ -4,26 +4,18 @@ Captures conceptual questions and answers (not bug fixes or API issues).
 """
 
 import streamlit as st
+from utils.styles import phase_header, ACCENT_COMPLETE
 
 st.set_page_config(page_title="Learning Insights", page_icon="💡", layout="wide")
 
 # ── Phase 0 header ─────────────────────────────────────────────────────────────
-st.markdown("""
-<div style='background:linear-gradient(135deg,#0D1117 0%,#0F1A2E 100%);
-border-left:5px solid #00FF9F;border-radius:8px;padding:18px 24px;margin-bottom:24px'>
-  <div style='font-size:0.65rem;font-weight:700;letter-spacing:3px;
-              text-transform:uppercase;color:#00FF9F;margin-bottom:6px'>
-    Phase 0 &nbsp;·&nbsp; Foundations &nbsp;·&nbsp; Concepts
-  </div>
-  <div style='font-size:1.7rem;font-weight:800;color:#E6EDF3;line-height:1.2'>
-    💡 Learning Insights
-  </div>
-  <div style='font-size:0.88rem;color:#8B949E;margin-top:6px'>
-    The <em>why</em> questions — the concepts that matter most as you progress through the course.
-    Each answer came from a real question during implementation.
-  </div>
-</div>
-""", unsafe_allow_html=True)
+st.markdown(phase_header(
+    "Phase 0 &nbsp;·&nbsp; Foundations &nbsp;·&nbsp; Concepts",
+    "💡 Learning Insights",
+    "The <em>why</em> questions — the concepts that matter most as you progress through the course. "
+    "Each answer came from a real question during implementation.",
+    accent=ACCENT_COMPLETE,
+), unsafe_allow_html=True)
 
 # ── Table of contents ──────────────────────────────────────────────────────────
 st.markdown("""

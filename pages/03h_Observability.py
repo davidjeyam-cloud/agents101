@@ -205,6 +205,9 @@ with tab_single:
         query_a = st.text_area("Query:", value=TASKS[st.session_state.sel_obs], height=90)
 
     if st.button("▶  Run with Tracing", type="primary", key="run_obs"):
+        if not query_a.strip():
+            st.warning("Please enter a query.")
+            st.stop()
         tracer = TraceCollector()
         config = types.GenerateContentConfig(system_instruction=AGENT_SYSTEM)
         convo = client.chats.create(model=MODEL, config=config)
