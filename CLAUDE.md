@@ -42,11 +42,11 @@ Phase 6     : Multi-Agent & Protocols — Multi-Agent, MCP, A2A, Comms Compariso
               (agents collaborating; standard protocols)
 Phase 7     : Production Operations — Observability, Cost & Latency, Error Analysis
               (running agents reliably at scale)
-Phase 8     : Agents in Practice — Customer Support, Coding Agent
+Phase 8     : Agents in Practice — Customer Support, Coding Agent, Computer Use
               (Anthropic Appendix 1 — real production builds)
 Phase 9     : Best Practices (Anthropic Appendix 2 — tool design, prompt engineering)
 Phase 10    : Frameworks Layer — AFTER all patterns are mastered
-              (LangGraph → LangChain → Google ADK → framework comparison)
+              (LangGraph → LangChain → Google ADK → CrewAI → framework comparison)
 Phase 11    : Managed Platforms — cursory overview
               (Vertex AI → Azure → Bedrock → OpenAI Assistants)
 ```
@@ -84,6 +84,14 @@ utils/
                         #   imports _diagram_phase10 via _ph10_diagrams() factory
   _diagram_phase10.py   # Phase 10 diagram functions (LangGraph, LangSmith, LangChain, ADK, Compare)
                         #   Always restart Streamlit after editing this file (module cache)
+  styles.py             # Design tokens, apply_theme(), phase_header(), CHART_COLORS, ACCENT_*
+                        #   apply_theme() called once from app.py — do NOT add to individual pages
+  trace.py              # render_trace() — standardised Execution Trace expander helper
+  quiz.py               # Quiz seed bank (13 phases) + Gemini-powered MCQ generation
+.streamlit/
+  config.toml           # Light theme (F5F7FA background, 1A202C text) — base Streamlit theme
+.claude/
+  skills/               # Project-scoped Claude Code skills (ui-ux-pro-max set, 7 skills, MIT)
 .env                    # Your API key (gitignored)
 .env.example            # Template to copy
 ```
@@ -398,6 +406,7 @@ docs: <what doc was updated>                    ← docs only
 | `04a_Customer_Support.py` | Customer Support Agent — full pipeline: 4a+5b+5a+3a+4c+4b+7a combined | ✅ Complete |
 | `04a1_Elite_Agent.py` | Elite Multi-Agent System — 8a.1 extended build | ✅ Complete |
 | `04b_Coding_Agent.py` | Coding Agent — GitHub issue → fix → test → iterate | 🔜 |
+| `04c_ComputerUse.py` | Computer Use Agents — screenshot → action loop, Playwright pattern, sandboxing | ✅ Complete |
 
 ### Phase 9 — Best Practices  (Anthropic Appendix 2)
 | Page file | Module | Status |
@@ -412,7 +421,8 @@ docs: <what doc was updated>                    ← docs only
 | `06c_LangSmith.py` | LangSmith: Phase 7 observability automated — auto-trace, datasets, eval runs | ✅ Complete |
 | `06d_LangChain.py` | LangChain LCEL: Phase 1 memory + Phase 2a chaining + Phase 5 RAG as pipe syntax | ✅ Complete |
 | `06e_GoogleADK.py` | Google ADK: multi-agent (sequential/parallel/loop) | ✅ Complete |
-| `06f_Framework_Compare.py` | Framework comparison: LangGraph vs ADK vs raw SDK | ✅ Complete |
+| `06g_CrewAI.py` | CrewAI: role-based crews — researcher→writer demo, Process.sequential/hierarchical | ✅ Complete |
+| `06f_Framework_Compare.py` | Framework comparison: LangGraph vs ADK vs CrewAI vs AutoGen vs raw SDK | ✅ Complete |
 
 ### Phase 11 — Managed Platforms  (cursory overview)
 | Page file | Module | Status |
@@ -428,17 +438,17 @@ Source: DeepLearning.AI Agentic AI course (7h45m, 31 lessons)
 
 | Andrew Ng Pattern | Our Coverage | Gap / Status | Priority |
 |---|---|---|---|
-| **Reflection** | ✅ Phase 3b complete — self-critique loop, code validation (Variant B), structured critique (Variant C) | No gap — done | ✅ |
-| **Tool Use** | ✅ Phase 1c · 1d · 3a · 5a — 7 real tools, live APIs | Missing: code execution tool (Python REPL) → Phase 3d | ⭐⭐ |
-| **Planning** | Phase 2d plans once upfront; 3a has implicit reasoning | Phase 3c (Plan-and-Execute) must be built | ⭐⭐⭐ |
-| **Multi-Agent** | Phase 2d (orchestrator concept only) | Phase 6a must be built with Google ADK | ⭐⭐⭐ |
-| **Evaluation** | ✅ Phase 2e (loop) + Phase 4c (LLM-as-Judge) complete | Systematic eval framework → Phase 4d still needed | ⭐⭐⭐ |
-| **Cost optimisation** | Not covered | Phase 7b needed | ⭐⭐ |
-| **Error analysis** | Not covered | Phase 7c needed | ⭐⭐ |
+| **Reflection** | ✅ Phase 3b complete — self-critique loop, code validation (Variant B), structured critique (Variant C) | No gap | ✅ |
+| **Tool Use** | ✅ Phase 1c · 1d · 3a · 5a — 7 real tools, live APIs | ✅ Code execution tool (Python REPL) → Phase 3d complete | ✅ |
+| **Planning** | ✅ Phase 3c complete — Plan-and-Execute | No gap | ✅ |
+| **Multi-Agent** | ✅ Phase 6a complete — Root+Sub-Agents, parallel, vs Orchestrator-Workers | No gap | ✅ |
+| **Evaluation** | ✅ Phase 4d complete — systematic evals, golden dataset, metrics | No gap | ✅ |
+| **Cost optimisation** | ✅ Phase 7b complete — token counting, caching sim, model routing | No gap | ✅ |
+| **Error analysis** | ✅ Phase 7c complete — 5-type taxonomy, broken vs fixed, auto-diagnosis | No gap | ✅ |
 
 ## Agent Communication Protocols — Why Added
 These were NOT in the original Anthropic article (predates them). Added because they are
-production-critical and actively deployed in 2025:
+production-critical and actively deployed in 2026:
 - **MCP** (Anthropic, Nov 2024): standard for agent ↔ tool/data-source connections
 - **A2A** (Google, Apr 2025): standard for agent ↔ agent communication
 - **Key distinction**: MCP = agent-to-resource; A2A = agent-to-agent (complementary)
@@ -468,8 +478,12 @@ production-critical and actively deployed in 2025:
 ## Phase 10 — Technical Notes
 
 - **`google-adk` is NOT installed** — `requirements.txt` does not include it. Phase 10e (`06e_GoogleADK.py`) teaches ADK concepts using `st.code()` side-by-side with runnable raw Gemini SDK equivalents. Do not add `google-adk` as a dependency without explicit user instruction.
+- **`crewai` is NOT installed** — same pattern as ADK. Phase 10g (`06g_CrewAI.py`) teaches CrewAI concepts via `st.code()` and implements the identical crew pattern (researcher→writer) using raw Gemini SDK. Do not add `crewai` as a dependency without explicit user instruction.
 - **Phase 10 diagrams** live in `utils/_diagram_phase10.py` and are injected into `utils/diagrams.py` via the `_ph10_diagrams()` factory tuple (currently 6 functions). When adding a new Phase 10 diagram, append it to that tuple and unpack it in `diagrams.py`. Always restart Streamlit after editing `_diagram_phase10.py`.
 - **`04a1_Elite_Agent.py`** (8a.1 — Elite Multi-Agent System) is present in `app.py` nav and fully built but was not in the original Anthropic curriculum — it is an extended build on top of 8a.
+- **`utils/styles.py`** — single source of truth for design tokens, `apply_theme()`, `phase_header()`, `CHART_COLORS`, `ACCENT_*`. Called from `app.py` before `pg.run()` — do NOT add to individual pages.
+- **`utils/trace.py`** — `render_trace()` helper for standardised Execution Trace expanders. Import and use on all new LLM pages instead of raw `st.expander("🔬 ...")`.
+- **`.streamlit/config.toml`** — sets the light professional theme (backgroundColor `#F5F7FA`, textColor `#1A202C`). The base theme is controlled here; `styles.py` adds only minimal sidebar/tab CSS on top.
 
 ## Deferred Work — Home Page Redesign (pages/00a_Home.py)
 
