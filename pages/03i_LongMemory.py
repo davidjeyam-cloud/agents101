@@ -38,7 +38,7 @@ with st.expander("📖 What is Long-term Memory -- and how does it differ from c
     st.markdown("""
     **Two types of memory in agentic systems:**
 
-    | Feature | Context Window (Phase 1b) | Vector Store (Phase 5b) |
+    | Feature | Context Window (Phase 1 — tab 1b) | Vector Store (Phase 5b) |
     |---|---|---|
     | **Scope** | Single session only | Persists across sessions |
     | **Size** | Limited by context window (~1M tokens max) | Unlimited (disk/DB) |
@@ -46,7 +46,7 @@ with st.expander("📖 What is Long-term Memory -- and how does it differ from c
     | **Cost** | Every token costs on every call | Only retrieved tokens cost |
     | **Search** | No semantic search | Cosine similarity (fuzzy matching) |
     | **Update** | Grows as conversation progresses | Explicit `remember()` calls |
-    | **Phase** | 1b | 5b |
+    | **Phase** | Phase 1 (Memory tab) | 5b |
 
     **The three steps (same as RAG in Phase 5a, but the content is memories, not documents):**
 
@@ -412,7 +412,8 @@ with tab_b:
                 + memory_context
             )
             history_for_llm = [
-                {"role": t["role"], "parts": [{"text": t["content"]}]}
+                {"role": "model" if t["role"] == "assistant" else t["role"],
+                 "parts": [{"text": t["content"]}]}
                 for t in st.session_state.mem_agent_history[:-1]
             ]
 

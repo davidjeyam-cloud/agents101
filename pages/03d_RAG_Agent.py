@@ -37,13 +37,17 @@ with st.expander("📖 What is RAG — and why does every production agent need 
     > *"Retrieval-Augmented Generation grounds the model's responses in specific,
     > up-to-date information from your own documents — not just training data."*
 
-    **The three steps (R-A-G):**
+    **The full pipeline — four steps in Agentic RAG:**
 
     | Step | What happens | Tech used |
     |---|---|---|
-    | **Retrieve** | Embed the query → cosine search → find top-K similar chunks | `gemini-embedding-001` (3072-dim) |
-    | **Augment** | Inject retrieved chunks into the prompt as context | Prompt engineering |
-    | **Generate** | LLM answers using the context — not just training data | `gemini-2.5-flash` |
+    | **0 — Reformulate** | Agent reads your question and writes a keyword search query | LLM (Gemini) — implicit, part of tool call |
+    | **R — Retrieve** | Embed that keyword query → cosine search → top-K similar docs | `gemini-embedding-001` (3072-dim) |
+    | **A — Augment** | Inject retrieved chunks into the LLM prompt as context | Prompt engineering |
+    | **G — Generate** | LLM answers using the context — not just training data | `gemini-2.5-flash` |
+
+    > Step 0 is invisible in Basic RAG — the user's exact words go straight to the embedder.
+    > In Agentic RAG the LLM rewrites first. See the *'Query Reformulation'* expander below.
 
     **Why agents need RAG:**
     - LLMs know general knowledge — not YOUR organisation's specific policies
@@ -60,6 +64,76 @@ with st.expander("📖 What is RAG — and why does every production agent need 
     | How many times? | Once | Agent may search multiple times with different queries |
     | Is it an agent? | ❌ Workflow | ✅ Agent |
     """)
+
+with st.expander("🔄 Query Reformulation — the hidden step before the vector"):
+    st.markdown("""
+**The question you typed is NOT what gets embedded.** The agent rewrites it first.
+
+**Concrete example from this demo:**
+
+| | Text |
+|---|---|
+| **User typed** | *"NexaBank hasn't resolved my issue in 6 weeks. What are my options and can I go to the ombudsman?"* |
+| **Agent passed to search** | *"NexaBank complaint resolution unresolved issues ombudsman"* |
+
+---
+
+**Why are they different?**
+
+The user's question is conversational — it has filler words, personal pronouns, and context
+that add meaning to a human but add *noise* to a vector search.
+The agent strips all of that and keeps only the concepts that identify the right document.
+
+| Word type | Example from question | Kept in query? | Why |
+|---|---|---|---|
+| **Core concept** | `complaint`, `ombudsman` | ✅ Yes | These are exactly what the KB document is about |
+| **Core concept** | `resolution`, `unresolved` | ✅ Yes | Describes the situation the policy addresses |
+| **Filler / personal** | `I`, `my issue`, `hasn't` | ❌ No | Adds no signal for finding the right document |
+| **Temporal** | `in 6 weeks` | ❌ No | Specific to this user — not in any policy doc |
+| **Polite wrapper** | `What are my options and can I go to...` | ❌ No | Query framing, not content |
+
+---
+
+**How does the reformulation actually happen?**
+
+Nobody explicitly tells the agent to rewrite the query.
+It happens automatically when the agent constructs the tool call argument:
+
+```python
+# The agent receives the full user question, then calls:
+search_knowledge_base(query="NexaBank complaint resolution unresolved issues ombudsman")
+#                     ↑
+#                     The agent chose this string — not the user's words.
+#                     It wrote whatever it thought would find the best documents.
+```
+
+The LLM has been trained on billions of search interactions.
+It has learned that search engines and vector databases respond better to
+keyword-dense queries than to conversational sentences.
+When constructing the `query=` argument for a "search knowledge base" function,
+it automatically applies that pattern.
+
+---
+
+**Why does this matter for retrieval quality?**
+
+Vector search measures **semantic similarity** between the query vector and document vectors.
+
+- A short keyword query like `"complaint resolution ombudsman"` points its vector
+  directly at the region of embedding space where complaint-policy documents live.
+- The full sentence `"NexaBank hasn't resolved my issue in 6 weeks..."` spreads its
+  vector across many topics (time, personal situation, banking, complaint) and ends up
+  **closer to the middle** — finding no document strongly.
+
+| | Keyword query | Full sentence query |
+|---|---|---|
+| **Vector direction** | Tight — points at one topic area | Diffuse — averaged across many topics |
+| **Cosine score vs policy doc** | High (0.70+) | Lower (0.50–0.60) |
+| **Risk** | May miss context | May miss the right document entirely |
+
+This is why Agentic RAG retrieves more accurately than Basic RAG
+even when both have access to the same knowledge base.
+""")
 
 with st.expander("📐 Core Code Pattern — RAG Agent"):
     st.code('''
@@ -540,15 +614,20 @@ if st.button("▶  Run RAG Agent + Query X-Ray", type="primary", key="run_3d"):
                 )
                 col_q, col_v = st.columns([1, 1])
                 with col_q:
-                    st.markdown("**Agent's search query (input):**")
+                    st.markdown("**Agent's search query (input to embedder):**")
                     st.info(f'"{xray["query"]}"')
                     if xray["query"] != question:
-                        st.caption(
-                            "⚡ Agent reformulated the query — different from what you typed. "
-                            "This is Agentic RAG in action."
+                        q_short = question[:80] + ("..." if len(question) > 80 else "")
+                        st.markdown(
+                            f"⚡ **Reformulated** — the agent did NOT embed your original question.\n\n"
+                            f"**You typed:** *\"{q_short}\"*\n\n"
+                            f"**Agent searched:** *\"{xray['query']}\"*\n\n"
+                            f"The LLM extracted the key concepts and dropped filler words "
+                            f"before calling the search tool. "
+                            f"See *'Query Reformulation'* expander at the top for why."
                         )
                     else:
-                        st.caption("Agent used your original question as-is.")
+                        st.caption("Agent used your original question as-is (no reformulation this run).")
                 with col_v:
                     st.markdown(f"**Output: {xray['vector_dim']}-dimensional vector (first 8 values):**")
                     snippet = ", ".join(f"{v:+.4f}" for v in xray["vector_snippet"])
@@ -734,40 +813,65 @@ if st.button("▶  Run RAG Agent + Query X-Ray", type="primary", key="run_3d"):
             )
             query_display = all_queries[0] if len(all_queries) == 1 else " → ".join(f'"{q}"' for q in all_queries)
 
+            # Prepare truncated 1-line values for each column
+            q0_short  = all_queries[0][:55] + ("..." if len(all_queries[0]) > 55 else "")
+            vec_str   = (f"`[{last_xray['vector_snippet'][0]:+.3f}, "
+                         f"{last_xray['vector_snippet'][1]:+.3f}, "
+                         f"{last_xray['vector_snippet'][2]:+.3f} ...]`")
+            top_title = (top_doc['title'][:40] + "..." if top_doc and len(top_doc['title']) > 40
+                         else (top_doc['title'] if top_doc else "none"))
+            ret_short = "; ".join(
+                f'"{c["title"][:28]}..." ({c["score"]:.3f})' if len(c["title"]) > 28
+                else f'"{c["title"]}" ({c["score"]:.3f})'
+                for c in last_xray["top_k"]
+            )
+            excl_short = ", ".join(
+                f'"{d["title"][:22]}..."' if len(d["title"]) > 22 else f'"{d["title"]}"'
+                for d in last_xray["all_scores"] if d["id"] not in last_xray["top_ids"]
+            )
+            excl_short = excl_short[:90] + ("..." if len(excl_short) > 90 else "") or "—"
+            q_display  = query_display[:80] + ("..." if len(query_display) > 80 else "")
+
             st.markdown(f"""
-| Step | What ran | Actual output this run |
-|---|---|---|
-| **① Embed** | `gemini-embedding-001` → {last_xray['vector_dim']}-dim vector | First 3 values: `{last_xray['vector_snippet'][0]:+.4f}`, `{last_xray['vector_snippet'][1]:+.4f}`, `{last_xray['vector_snippet'][2]:+.4f}` |
-| **② Cosine search** | Scored all {len(last_xray['all_scores'])} KB docs | Query used: *"{all_queries[0][:70]}{'...' if len(all_queries[0])>70 else ''}"* |
-| **Top match** | Highest scoring document | **{top_doc['title'] if top_doc else 'none'}** — score `{top_doc['score']:.3f}` {"✅ relevant" if found_relevant else "❌ below threshold"} |
-| **③ Retrieved** | {len(last_xray['top_k'])} doc(s) selected | {retrieved_titles} |
-| **Excluded** | {len(last_xray['all_scores']) - len(last_xray['top_k'])} doc(s) not used | {excluded_titles[:120]}{'...' if len(excluded_titles) > 120 else ''} |
-| **④ Augment** | Context injected into prompt | ~{total_chars // 4} tokens of policy text added |
-| **⑤ Generate** | `gemini-2.5-flash` answered | {"Grounded answer using retrieved docs" if found_relevant else "Agent acknowledged no specific policy found"} |
-| **Agent searches** | {len(retrieval_traces)} call(s) total | {query_display[:100]} |
+| Step | Input | What ran | Output |
+|---|---|---|---|
+| **① Embed** | `"{q0_short}"` | `gemini-embedding-001` | {vec_str} ({last_xray['vector_dim']}-dim) |
+| **② Score** | {last_xray['vector_dim']}-dim query vector | Cosine vs all {len(last_xray['all_scores'])} KB docs | Top: **{top_title}** → `{top_doc['score']:.3f}` {"✅" if found_relevant else "❌ below 0.50"} |
+| **③ Filter** | {len(last_xray['all_scores'])} scored docs | Keep score ≥ 0.50 | Retrieved: {ret_short} |
+| **Excluded** | Remaining {len(last_xray['all_scores']) - len(last_xray['top_k'])} docs | Below threshold | {excl_short} |
+| **④ Augment** | Retrieved doc content | Inject into LLM prompt | ~{total_chars // 4} tokens of policy text added |
+| **⑤ Generate** | Augmented prompt (question + context) | `gemini-2.5-flash` | {"Grounded answer from retrieved policy" if found_relevant else "No specific policy matched — answered from context"} |
+| **Agent** | User question | {len(retrieval_traces)} search call(s) | Queries: {q_display} |
 """)
         else:
             st.markdown(f"""
-| Step | What ran | How |
-|---|---|---|
-| **Agent** | No knowledge base search made | Agent answered from conversation context directly |
-| **Generate** | `gemini-2.5-flash` answered | No RAG augmentation applied this run |
+| Step | Input | What ran | Output |
+|---|---|---|---|
+| **Agent decision** | User question | Decided no KB search needed | Answered from conversation context |
+| **⑤ Generate** | Conversation context only | `gemini-2.5-flash` | No RAG augmentation applied this run |
 """)
 
+        # Describe what the agent actually did this run (computed after both branches)
+        if len(retrieval_traces) == 0:
+            agent_behaviour = "skipped search entirely — it was confident from context (no retrieval needed)"
+        elif len(retrieval_traces) == 1:
+            agent_behaviour = "searched once and found a relevant match — single-pass retrieval was sufficient"
+        else:
+            agent_behaviour = f"searched {len(retrieval_traces)} times — reformulated the query to improve retrieval"
+        st.info(
+            f"**This run demonstrated Agentic RAG:** the agent {agent_behaviour}. "
+            "A Basic RAG workflow would always search exactly once with the user's exact words — "
+            "see the *'What is RAG'* expander above for the full comparison."
+        )
         st.markdown("""
-**Without RAG:** LLM guesses NexaBank-specific rates, fees, and timelines from training data.
-**With RAG:** LLM answers using the actual policy document — specific and accurate.
+**Production vector stores** — replace the in-memory cosine search in this demo with:
 
-**Why Agentic RAG > Basic RAG:**
-- *Whether* to search — agent decides (may skip if confident from context)
-- *What* to search — agent may reformulate query for better retrieval
-- *How many times* — agent may search again with different terms
-
-**Production stack:** Replace in-memory cosine search with:
-- **Vertex AI Search** (Google) — fully managed RAG
-- **ChromaDB** — open-source vector store
-- **Pinecone / Weaviate** — managed vector databases
-- **AlloyDB / BigQuery** — with vector search extensions
+| Store | Type | Best for |
+|---|---|---|
+| **Vertex AI Search** | Fully managed (Google) | Enterprise Google Cloud deployments |
+| **ChromaDB** | Open-source, self-hosted | Local dev, cost-sensitive projects |
+| **Pinecone / Weaviate** | Managed vector DB | High-scale, low-latency retrieval |
+| **AlloyDB / BigQuery** | SQL + vector extensions | Teams already on Google Cloud SQL |
 """)
 
     st.markdown("---")

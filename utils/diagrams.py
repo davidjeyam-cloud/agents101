@@ -1151,7 +1151,7 @@ def diagram_agent_anatomy() -> bytes:
         "Long-term: vector store",
         "Episodic: past sessions"],
        C["memory"], fs=8, z=5)
-    caption(2.8, 5.97, "Phase 1b · 5b", C["memory"])
+    caption(2.8, 5.97, "Phase 1 (1b) · 5b", C["memory"])
 
     # Column B: LLM / BRAIN  (x=7.0)
     bx(7.0, 6.7, 3.4, 1.5,
@@ -1880,7 +1880,7 @@ def diagram_long_memory() -> bytes:
     p = FancyBboxPatch((0, 4.45), 5, 0.3, boxstyle="round,pad=0.05",
                        facecolor=C["agent_no"], edgecolor="white", lw=1.5, zorder=4)
     ax.add_patch(p)
-    ax.text(2.5, 4.6, "Phase 1b  Context Window  (ephemeral)",
+    ax.text(2.5, 4.6, "Phase 1 (tab 1b)  Context Window  (ephemeral)",
             ha="center", va="center", fontsize=8.5, color="white", fontweight="bold", zorder=5)
     ax.text(2.5, 4.22, "Lives only for the current session -- gone when it ends",
             ha="center", fontsize=7.2, color="#566573", style="italic")
