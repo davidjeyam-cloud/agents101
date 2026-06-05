@@ -201,10 +201,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── Stats ──────────────────────────────────────────────────────────────────────
-total    = 40
-complete = 30   # Ph0(3)+Ph1(1)+Ph2(5)+Ph3(4)+Ph4(4)+Ph5(2)+Ph6(4)+Ph7(3)+Ph8a(2)+Ph9(1)+Ph10e(1)
+total    = 47  # all phase cards on this page
+complete = 41  # Ph0(3)+Ph1(1)+Ph2(5)+Ph3(5)+Ph4(4)+Ph5(2)+Ph6(4)+Ph7(4)+Ph8(5)+Ph9(1)+Ph10(7)
 in_prog  = 0
-coming   = total - complete - in_prog
+coming   = total - complete - in_prog  # 6 remaining: 8b + all Phase 11
 pct      = int(complete / total * 100)
 
 st.markdown(f"""
@@ -267,25 +267,25 @@ border-radius:12px;padding:16px 20px;margin-bottom:24px;">
                   text-transform:uppercase;margin-bottom:4px;">Step 1 — Phase 8b</div>
       <div style="color:#E6EDF3;font-size:0.85rem;font-weight:600;">Coding Agent</div>
       <div style="color:#8B949E;font-size:0.72rem;margin-top:3px;">
-        GitHub issue to fix to test -- full autonomous coding loop
+        The one remaining Phase 8 page — GitHub issue to fix, full autonomous coding loop
       </div>
     </div>
     <div style="flex:1;min-width:180px;background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.3);
                 border-radius:8px;padding:10px 14px;">
       <div style="color:#FFB347;font-size:0.65rem;font-weight:700;letter-spacing:1px;
-                  text-transform:uppercase;margin-bottom:4px;">Step 2 — Phase 10a</div>
-      <div style="color:#E6EDF3;font-size:0.85rem;font-weight:600;">LangGraph Workflows</div>
+                  text-transform:uppercase;margin-bottom:4px;">Step 2 — Phase 100</div>
+      <div style="color:#E6EDF3;font-size:0.85rem;font-weight:600;">Quiz Hub</div>
       <div style="color:#8B949E;font-size:0.72rem;margin-top:3px;">
-        Workflows as typed state graphs · nodes · edges · conditional branching
+        Test your knowledge across all 16 phases — Gemini-powered fresh questions every run
       </div>
     </div>
-    <div style="flex:1;min-width:180px;background:rgba(0,255,159,0.06);border:1px solid rgba(0,255,159,0.2);
+    <div style="flex:1;min-width:180px;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);
                 border-radius:8px;padding:10px 14px;">
-      <div style="color:#00FF9F;font-size:0.65rem;font-weight:700;letter-spacing:1px;
-                  text-transform:uppercase;margin-bottom:4px;">Step 3 — Phase 10a</div>
-      <div style="color:#E6EDF3;font-size:0.85rem;font-weight:600;">LangGraph Workflows</div>
+      <div style="color:#00D4FF;font-size:0.65rem;font-weight:700;letter-spacing:1px;
+                  text-transform:uppercase;margin-bottom:4px;">Step 3 — Phase 11</div>
+      <div style="color:#E6EDF3;font-size:0.85rem;font-weight:600;">Managed Platforms</div>
       <div style="color:#8B949E;font-size:0.72rem;margin-top:3px;">
-        Reimplement Phase 2 patterns as state graphs -- frameworks start here
+        Vertex AI · Azure · Bedrock · OpenAI Assistants — production deployment overviews
       </div>
     </div>
   </div>
@@ -335,7 +335,7 @@ grid(
 )
 
 # ── CORE AGENT PATTERNS ────────────────────────────────────────────────────────
-section("PHASE 3 — CORE AGENT PATTERNS  ·  2 of 4 complete", "#B47FFF")
+section("PHASE 3 — CORE AGENT PATTERNS  ·  Complete", "#B47FFF")
 grid(
     card("3a", "ReAct Agent",
          "Think → Act → Observe loop · JSON reasoning · model controls its own process",
@@ -345,17 +345,20 @@ grid(
          "Complete", "b-done", "pcard-complete", "#B47FFF"),
     card("3c", "Planning Agent",
          "Andrew Ng Pattern 3 · explicit Plan-and-Execute · adaptive replanning mid-run",
-         "Priority", "b-hot", "pcard-priority", "#FF6384"),
+         "Complete", "b-done", "pcard-complete", "#B47FFF"),
     card("3d", "Code Execution Tool",
          "Andrew Ng Pattern 2 extension · Python REPL as tool · agent writes + runs code",
-         "Coming", "b-soon", "pcard-coming", "#6E7681"),
+         "Complete", "b-done", "pcard-complete", "#B47FFF"),
+    card("3e", "Pattern Decision Guide",
+         "All 9 patterns compared · when to use each · decision flowchart · trade-off tables",
+         "Complete", "b-done", "pcard-complete", "#B47FFF"),
 )
 
 # ── TRUST & SAFETY ─────────────────────────────────────────────────────────────
-section("PHASE 4 — TRUST & SAFETY  ·  3 of 4 complete", "#FF6384")
+section("PHASE 4 — TRUST & SAFETY  ·  Complete", "#FF6384")
 grid(
     card("4a", "Guardrails",
-         "Input + output safety · PII detection · injection · financial compliance (FCA)",
+         "Input + output safety · PII detection · prompt injection · financial compliance",
          "Complete", "b-done", "pcard-complete", "#FF6384"),
     card("4b", "Human-in-the-Loop",
          "Checkpoint pattern · approve / reject / modify · audit trail · risk gating",
@@ -364,8 +367,8 @@ grid(
          "Independent quality gate · 4-criteria scoring · PASS / REVIEW / FAIL routing",
          "Complete", "b-done", "pcard-complete", "#FF6384"),
     card("4d", "Evaluation Framework",
-         "Systematic evals · test sets · metrics · regression testing · golden datasets",
-         "Coming", "b-soon", "pcard-coming", "#6E7681"),
+         "Systematic evals · golden datasets · metrics · regression testing across versions",
+         "Complete", "b-done", "pcard-complete", "#FF6384"),
 )
 
 # ── KNOWLEDGE & MEMORY ─────────────────────────────────────────────────────────
@@ -408,58 +411,73 @@ grid(
     card("7c", "Error Analysis",
          "5-type taxonomy · broken vs fixed · auto-diagnosis · fix playbook",
          "Complete", "b-done", "pcard-complete", "#5D6D7E"),
+    card("7d", "Stateful Task Management",
+         "Checkpoint/resume · idempotency · dead-letter queue · task lifecycle states",
+         "Complete", "b-done", "pcard-complete", "#5D6D7E"),
 )
 
 # ── AGENTS IN PRACTICE ─────────────────────────────────────────────────────────
-section("PHASE 8 — AGENTS IN PRACTICE  ·  Anthropic Appendix 1", "#FFB347")
+section("PHASE 8 — AGENTS IN PRACTICE  ·  5 of 6 complete", "#FFB347")
 grid(
     card("8a", "Customer Support Agent",
-         "Full pipeline: 4a+5b+5a+3a+4c+4b+7a -- all patterns combined in one production system",
+         "Full pipeline: 4a+5b+5a+3a+4c+4b+7a — all patterns combined in one production system",
          "Complete", "b-done", "pcard-complete", "#FFB347"),
     card("8a.1", "Elite Multi-Agent System",
-         "All 13 patterns simultaneously: MCP servers + A2A + Reflection + Planning + Code Exec + RAG + Memory",
+         "All 13 patterns simultaneously: MCP + A2A + Reflection + Planning + Code Exec + RAG + Memory",
          "Complete", "b-done", "pcard-complete", "#FFB347"),
     card("8b", "Coding Agent",
          "GitHub issue → write fix → run tests → iterate · full autonomous loop",
-         "Coming", "b-soon", "pcard-coming", "#FFB347"),
+         "Coming", "b-soon", "pcard-coming", "#6E7681"),
+    card("8c", "Computer Use Agents",
+         "Screenshot → action loop · Playwright pattern · sandboxing · visual perception",
+         "Complete", "b-done", "pcard-complete", "#FFB347"),
+    card("8d", "Multimodal Agents",
+         "Image Q&A · document extraction · chart analysis · Gemini vision input",
+         "Complete", "b-done", "pcard-complete", "#FFB347"),
+    card("8e", "Enterprise Event-Driven",
+         "Kafka consumer/producer · fan-out · dead-letter · event replay · async patterns",
+         "Complete", "b-done", "pcard-complete", "#FFB347"),
 )
 
 # ── BEST PRACTICES ─────────────────────────────────────────────────────────────
 section("PHASE 9 — BEST PRACTICES  ·  Anthropic Appendix 2", "#FFB347")
 grid(
     card("9", "Best Practices",
-         "Tool design · prompt engineering for tools · when NOT to use agents · pre-flight checklist",
-         "Complete", "b-done", "pcard-done", "#FFB347"),
+         "Tool design · prompt engineering · fine-tuning vs RAG decision guide · pre-flight checklist",
+         "Complete", "b-done", "pcard-complete", "#FFB347"),
 )
 
 # ── FRAMEWORKS ─────────────────────────────────────────────────────────────────
-section("PHASE 10 — FRAMEWORKS LAYER  ·  after all patterns mastered", "#B47FFF")
+section("PHASE 10 — FRAMEWORKS LAYER  ·  Complete", "#B47FFF")
 st.markdown("""<div style="background:rgba(180,127,255,0.05);border:1px solid rgba(180,127,255,0.2);
 border-radius:10px;padding:12px 16px;margin-bottom:12px;color:#8B949E;font-size:0.82rem;line-height:1.6">
 &#128161; <strong style="color:#B47FFF">Why frameworks come last:</strong>
 Anthropic and Andrew Ng both recommend learning API-first.
 By Phase 10 you understand every pattern — frameworks become an acceleration, not a crutch.
-You can read LangGraph source code and understand exactly what it does.
+You can read LangGraph, CrewAI, and ADK source code and understand exactly what they do.
 </div>""", unsafe_allow_html=True)
 grid(
     card("10a", "LangGraph — Workflows",
-         "Reimplement Phase 2 patterns as state graphs · nodes · edges · conditions",
-         "Frameworks", "b-fw", "pcard-future", "#B47FFF"),
+         "Phase 2 patterns as typed StateGraph · nodes · edges · conditional branching",
+         "Complete", "b-done", "pcard-complete", "#B47FFF"),
     card("10b", "LangGraph — Agents",
-         "AgentExecutor · HITL · streaming · checkpointing · persistence",
-         "Frameworks", "b-fw", "pcard-future", "#B47FFF"),
+         "create_react_agent · HITL via interrupt_before · checkpointing · streaming",
+         "Complete", "b-done", "pcard-complete", "#B47FFF"),
     card("10c", "LangSmith",
-         "Tracing · evaluation · dataset management · regression testing",
-         "Frameworks", "b-fw", "pcard-future", "#B47FFF"),
-    card("10d", "LangChain",
-         "Tools · memory · document loaders · chains · ecosystem overview",
-         "Frameworks", "b-fw", "pcard-future", "#B47FFF"),
+         "Auto-tracing · golden dataset evals · cost dashboards · regression runs",
+         "Complete", "b-done", "pcard-complete", "#B47FFF"),
+    card("10d", "LangChain LCEL",
+         "Pipe syntax · Phase 1b memory · Phase 2a chaining · Phase 5a RAG as 4 components",
+         "Complete", "b-done", "pcard-complete", "#B47FFF"),
     card("10e", "Google ADK",
-         "Sequential · parallel · loop agents · sub-agent delegation",
-         "Frameworks", "b-fw", "pcard-complete", "#B47FFF"),
+         "SequentialAgent · ParallelAgent · LoopAgent · sub-agent delegation",
+         "Complete", "b-done", "pcard-complete", "#B47FFF"),
+    card("10g", "CrewAI",
+         "Role-based crews · role + backstory + goal · Process.sequential / hierarchical",
+         "Complete", "b-done", "pcard-complete", "#B47FFF"),
     card("10f", "Framework Comparison",
-         "LangGraph vs ADK vs raw SDK · decision guide · trade-offs",
-         "Frameworks", "b-fw", "pcard-future", "#B47FFF"),
+         "LangGraph vs CrewAI vs ADK vs AutoGen vs raw SDK · decision guide · trade-offs",
+         "Complete", "b-done", "pcard-complete", "#B47FFF"),
 )
 
 # ── MANAGED PLATFORMS ──────────────────────────────────────────────────────────

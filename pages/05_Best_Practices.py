@@ -165,8 +165,8 @@ def get_weather(city: str) -> dict:
     if st.button("▶ Run Tool Design Comparison", type="primary", key="tool_btn"):
         from utils.tools import get_weather
 
-        # Bad version: vague docstring
-        def fetch_weather_bad(city):
+        # Bad version: vague docstring (type hint still required by SDK schema parser)
+        def fetch_weather_bad(city: str):
             """Get weather info."""
             return get_weather(city)
 
