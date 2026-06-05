@@ -57,15 +57,18 @@ pg = st.navigation({
         st.Page("pages/03l_AgentComms.py",   title="6d — Agent Communications"),
     ],
     "Phase 7 — Production Operations": [
-        st.Page("pages/03h_Observability.py", title="7a — Observability"),
-        st.Page("pages/03n_CostLatency.py",   title="7b — Cost & Latency"),
-        st.Page("pages/03o_ErrorAnalysis.py", title="7c — Error Analysis"),
+        st.Page("pages/03h_Observability.py",    title="7a — Observability"),
+        st.Page("pages/03n_CostLatency.py",      title="7b — Cost & Latency"),
+        st.Page("pages/03o_ErrorAnalysis.py",    title="7c — Error Analysis"),
+        st.Page("pages/03q_StatefulTasks.py",    title="7d — Stateful Task Management"),
     ],
     "Phase 8 — Agents in Practice": [
         st.Page("pages/04a_Customer_Support.py",  title="8a — Customer Support Agent"),
         st.Page("pages/04a1_Elite_Agent.py",      title="8a.1 — Elite Multi-Agent System"),
         st.Page("pages/04b_Coding_Agent.py",      title="8b — Coding Agent 🔜"),
         st.Page("pages/04c_ComputerUse.py",       title="8c — Computer Use Agents"),
+        st.Page("pages/04d_Multimodal.py",        title="8d — Multimodal Agents"),
+        st.Page("pages/04e_EventDriven.py",       title="8e — Enterprise Event-Driven"),
     ],
     "Phase 9 — Best Practices": [
         st.Page("pages/05_Best_Practices.py", title="9 — Best Practices"),

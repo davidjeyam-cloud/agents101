@@ -576,6 +576,64 @@ with tab_d:
     """)
 
 st.markdown("---")
+
+with st.expander("🎛️ Fine-tuning vs RAG vs Prompt Engineering — when to reach for each"):
+    st.markdown("""
+One of the most common architectural mistakes in production is reaching for fine-tuning when
+prompting or RAG would solve the problem faster, cheaper, and more reliably.
+
+**The three tools and what they actually change:**
+
+| Approach | What it changes | Requires | Cost |
+|---|---|---|---|
+| **Prompt Engineering** | How the model interprets and responds to instructions | Good prompt design | Near-zero — just tokens |
+| **RAG** (Phase 5a) | What factual knowledge the model has access to | Vector store + retrieval pipeline | Embedding + retrieval tokens |
+| **Fine-tuning** (LoRA / QLoRA / IA3) | The model's weights — its internal "skill" | Training data + GPU compute + expertise | High — training run + infra |
+
+**Decision guide — reach for each when:**
+
+| Scenario | Reach for | Why |
+|---|---|---|
+| Agent answers incorrectly about YOUR org's policies/data | **RAG** | The model doesn't know your data — retrieve it |
+| Agent uses the wrong tone, format, or persona | **Prompt Engineering** | Behaviour is a prompting problem, not a knowledge problem |
+| Agent doesn't know how to do a NEW TASK TYPE it was never trained for | **Fine-tuning** | Adding a capability the base model lacks |
+| Agent knows the task but ignores your output format | **Prompt Engineering** | Few-shot examples in the prompt almost always fix this |
+| Agent needs to do something extremely fast with tiny model on-device | **Fine-tuning (QLoRA)** | Distil the capability into a small, quantised model |
+| Agent needs real-time or frequently updated information | **RAG** | Fine-tuning bakes in stale knowledge at training time |
+| Agent needs to reason in a specialised domain (legal, medical, code) | **RAG first, fine-tune if RAG insufficient** | RAG is cheaper and faster to iterate |
+
+**The 80/20 rule of production agents:**
+
+> In practice, 80% of "the model doesn't know this" problems are solved by better RAG.
+> 15% are solved by better prompts. Only 5% genuinely require fine-tuning.
+
+**Why fine-tuning is a last resort in agentic systems:**
+
+1. **It doesn't help with current facts** — fine-tuned weights are static; RAG retrieves live data
+2. **It's expensive to iterate** — a prompt change takes seconds; a fine-tuning run takes hours
+3. **It breaks other capabilities** — fine-tuning can catastrophically forget unrelated skills
+4. **You own the model** — hosting a fine-tuned open-source model adds infra responsibility
+
+**When fine-tuning IS the right answer:**
+- You need a very small, fast, cheap model for high-volume inference
+- You're adding a genuinely new skill (not just knowledge)
+- Your task has a very specific, repetitive format that prompting alone can't reliably produce
+- You're in an air-gapped environment with no internet access for RAG
+
+**LoRA / QLoRA / IA3 — what each optimises:**
+
+| Technique | Memory | Speed | Use when |
+|---|---|---|---|
+| **LoRA** | Moderate savings | Moderate | Standard fine-tuning on a single GPU |
+| **QLoRA** | Very high savings (4-bit) | Slower training | Large model on limited GPU memory |
+| **IA3** | Minimal parameters changed | Fastest to train | Few-shot task adaptation, minimal data |
+
+*Note: Implementing these requires a separate setup (HuggingFace `peft`, `transformers`, GPU compute)
+— they are not part of this course's Gemini API stack. The decision framework above is the
+architecturally relevant part for agent builders.*
+""")
+
+st.markdown("---")
 st.markdown("### What's next → Phase 10 — Frameworks Layer")
 st.caption(
     "Phase 10 applies everything you've built from scratch to LangGraph, LangChain, and Google ADK. "
