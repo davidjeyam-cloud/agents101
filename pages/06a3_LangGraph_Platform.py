@@ -10,7 +10,6 @@ load_dotenv()
 
 st.set_page_config(page_title="10b4 — LangGraph Platform", page_icon="🚀", layout="wide")
 
-from utils.diagrams import diagram_langgraph_platform
 from utils.llm import MODEL, _client
 
 st.title("🚀 10b4 — LangGraph: Platform & Production")
@@ -19,8 +18,8 @@ st.caption(
     "How a graph built in 10a–10b3 becomes a deployed, observable, production service."
 )
 
-st.image(diagram_langgraph_platform(), use_container_width=True,
-         caption="Layer 6 — Platform & Production: Agent Loop cycle (left) + Platform features (right)")
+st.image("docs/images/arch_langgraph_platform.jpg", use_container_width=True,
+         caption="The LangGraph Agent Loop (Perceive → Reason → Act → Evaluate → Persist) and Platform infrastructure")
 
 # ── Concept ───────────────────────────────────────────────────────────────────
 with st.expander("📖 What is Layer 6 — Platform & Production"):

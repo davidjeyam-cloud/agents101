@@ -11,7 +11,6 @@ load_dotenv()
 
 st.set_page_config(page_title="10b3 — LangGraph Tools & Security", page_icon="🔧", layout="wide")
 
-from utils.diagrams import diagram_langgraph_tools_security
 from utils.llm import MODEL, _client
 
 st.title("🔧 10b3 — LangGraph: Tools & Security")
@@ -21,8 +20,8 @@ st.caption(
     "Cross-refs → Phase 1c (tools) · Phase 3a (ReAct) · Phase 4b (HITL) · Phase 6c (MCP)."
 )
 
-st.image(diagram_langgraph_tools_security(), use_container_width=True,
-         caption="Layer 5 — Tools & Security: tool call flow (left) + guard/HITL/audit (right)")
+st.image("docs/images/arch_langgraph_tools_security.jpg", use_container_width=True,
+         caption="Tool surface (search, code exec, API, MCP), @tool decorator, and the Guard Agent / HITL / audit security model")
 
 st.markdown("""
 <div style='background:#FEF6E4;border-left:5px solid #B05C10;padding:16px 22px;

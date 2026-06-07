@@ -17,7 +17,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-from utils.diagrams import diagram_langsmith
 from utils.llm import MODEL, _client
 
 # ── Title ─────────────────────────────────────────────────────────────────────
@@ -28,8 +27,8 @@ st.caption(
 )
 
 # ── Diagram ───────────────────────────────────────────────────────────────────
-st.image(diagram_langsmith(),
-         caption="Phase 7 manual TraceCollector vs LangSmith auto-tracing",
+st.image("docs/images/arch_langsmith.jpg",
+         caption="Manual TraceCollector (Phase 7) vs LangSmith auto-tracing — prompts, latency, cost, datasets, alerts, governance",
          use_container_width=True)
 
 st.markdown(

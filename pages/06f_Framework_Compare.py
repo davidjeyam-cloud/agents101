@@ -16,7 +16,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-from utils.diagrams import diagram_framework_compare
 from utils.llm import MODEL, _client
 
 # ── Title ─────────────────────────────────────────────────────────────────────
@@ -28,12 +27,12 @@ st.caption(
 
 # ── Diagram ───────────────────────────────────────────────────────────────────
 st.image(
-    diagram_framework_compare(),
+    "docs/images/arch_framework_compare.jpg",
     caption=(
-        "Left: where each framework sits on the abstraction vs agent-readiness landscape. "
-        "Right: the layered stack — Raw SDK is always the foundation; every other layer is optional."
+        "Top: where each framework sits on the abstraction vs agent-readiness landscape. "
+        "Bottom: the layered stack — Raw SDK is always the foundation; every other layer is optional."
     ),
-    use_column_width=True,
+    use_container_width=True,
 )
 
 st.markdown(

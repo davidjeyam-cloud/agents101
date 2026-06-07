@@ -16,7 +16,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-from utils.diagrams import diagram_langchain
 from utils.llm import MODEL, _client
 
 # ── Title ─────────────────────────────────────────────────────────────────────
@@ -27,7 +26,7 @@ st.caption(
 )
 
 # ── Diagram ───────────────────────────────────────────────────────────────────
-st.image(diagram_langchain(),
+st.image("docs/images/arch_langchain.jpg",
          caption="Each LCEL component maps directly to a phase you already completed — same concept, pipe syntax.",
          use_container_width=True)
 

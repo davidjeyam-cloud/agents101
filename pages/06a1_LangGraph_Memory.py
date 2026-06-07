@@ -10,7 +10,6 @@ load_dotenv()
 
 st.set_page_config(page_title="10b2 — LangGraph Memory", page_icon="🧠", layout="wide")
 
-from utils.diagrams import diagram_langgraph_memory
 from utils.llm import MODEL, _client
 
 st.title("🧠 10b2 — LangGraph: Memory & Persistence")
@@ -19,8 +18,8 @@ st.caption(
     "Cross-refs → Phase 1b (manual history) · Phase 5a (RAG) · Phase 5b (long-term memory)."
 )
 
-st.image(diagram_langgraph_memory(), use_container_width=True,
-         caption="Layer 4 — Memory & Context: checkpointer hierarchy (left) + memory types (right)")
+st.image("docs/images/arch_langgraph_memory.jpg", use_container_width=True,
+         caption="Checkpointer hierarchy, Memory Store vs Conversation Memory vs Vector Store, and thread_id scoping")
 
 st.markdown("""
 <div style='background:#EAF4EC;border-left:5px solid #6C3483;padding:16px 22px;

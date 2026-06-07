@@ -15,7 +15,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-from utils.diagrams import diagram_langgraph_agents
 from utils.llm import MODEL
 from utils.tools import get_weather, get_stock_price
 
@@ -27,9 +26,9 @@ st.caption(
 )
 
 # ── Diagram ───────────────────────────────────────────────────────────────────
-st.image(diagram_langgraph_agents(),
-         caption="Left: the while-loop you wrote in Phase 3. Right: LangGraph turning that loop into a graph.",
-         use_column_width=True)
+st.image("docs/images/arch_langgraph_agents.jpg",
+         caption="Your Phase 3 loop → create_react_agent() → streaming, persistence, typed state, HITL in 2 lines",
+         use_container_width=True)
 
 st.markdown(
     """
@@ -616,9 +615,8 @@ app = g.compile()
 
 # ── TAB: Agent Loop — Andrew Ng's 4 Patterns ──────────────────────────────────
 with tab_loop:
-    from utils.diagrams import diagram_langgraph_platform
-    st.image(diagram_langgraph_platform(), use_container_width=True,
-             caption="Left: the LangGraph Agent Loop (Perceive→Reason→Act→Evaluate→Persist). Right: LangGraph Platform.")
+    st.image("docs/images/arch_langgraph_platform.jpg", use_container_width=True,
+             caption="The LangGraph Agent Loop (Perceive → Reason → Act → Evaluate → Persist) and Platform infrastructure")
 
     st.markdown("""
 ### The LangGraph Agent Loop — Andrew Ng's 4 Patterns Unified
