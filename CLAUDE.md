@@ -94,7 +94,8 @@ utils/
 .streamlit/
   config.toml           # Light theme (F5F7FA background, 1A202C text) — base Streamlit theme
 .claude/
-  skills/               # Project-scoped Claude Code skills (ui-ux-pro-max set, 7 skills, MIT)
+  skills/               # Project-scoped Claude Code skills (8 skills — ui-ux-pro-max set + arch-diagram)
+    arch-diagram/       # HTML architecture diagram generator — /ckm:arch-diagram
 .env                    # Your API key (gitignored)
 .env.example            # Template to copy
 ```
@@ -490,6 +491,48 @@ production-critical and actively deployed in 2026:
 - **`utils/styles.py`** — single source of truth for design tokens, `apply_theme()`, `phase_header()`, `CHART_COLORS`, `ACCENT_*`. Called from `app.py` before `pg.run()` — do NOT add to individual pages.
 - **`utils/trace.py`** — `render_trace()` helper for standardised Execution Trace expanders. Import and use on all new LLM pages instead of raw `st.expander("🔬 ...")`.
 - **`.streamlit/config.toml`** — sets the light professional theme (backgroundColor `#F5F7FA`, textColor `#1A202C`). The base theme is controlled here; `styles.py` adds only minimal sidebar/tab CSS on top.
+
+## Project Skills — `.claude/skills/`
+
+Skills are invoked with `/ckm:<skill-name>` or `/ckm:<skill-name> [arguments]`.
+All skills follow the claudekit skill format: `SKILL.md` + optional `references/` + optional `scripts/`.
+
+| Skill | Invocation | Purpose |
+|---|---|---|
+| `arch-diagram` | `/ckm:arch-diagram [slug] [title] -- [tagline]` | Generate layered HTML architecture diagrams → JPEG. Table-only layout for wkhtmltoimage. |
+| `ui-ux-pro-max` | `/ckm:ui-ux-pro-max` | Full UI/UX design intelligence (50+ styles, 161 palettes, 57 font pairings) |
+| `design` | `/ckm:design [type] [context]` | Unified design: logo, CIP, slides, banners, social photos, icons |
+| `brand` | `/ckm:brand [update|review|create]` | Brand voice, visual identity, messaging frameworks |
+| `design-system` | `/ckm:design-system` | Token architecture, component specs, CSS vars |
+| `ui-styling` | `/ckm:ui-styling` | shadcn/ui + Tailwind CSS implementation |
+| `slides` | `/ckm:slides` | HTML presentations with Chart.js |
+| `banner-design` | `/ckm:banner-design` | Social/ads/print banner design (22 styles) |
+
+### `ckm:arch-diagram` — Architecture Diagram Generator
+
+**When to invoke:**
+- Creating a layered system architecture diagram for documentation, slides, or course content
+- Generating a visual overview of any multi-layer platform (agent, pipeline, DevOps, etc.)
+- The diagram should match the style of the Phase 10 `diagram_lang_arch_map()` reference diagram
+
+**Output:** `./output/[slug]_architecture.html` + `./output/[slug]_architecture.jpg` (if wkhtmltoimage installed)
+
+**Critical constraint:** The skill uses ONLY `<table>` for layout — no CSS flexbox, no CSS grid.
+wkhtmltoimage silently breaks on modern CSS. This is non-negotiable.
+
+**Install wkhtmltoimage (Windows):**
+```powershell
+winget install wkhtmltopdf   # then restart terminal
+```
+
+**Quick example:**
+```
+/ckm:arch-diagram agentic-ai "Agentic AI Architecture" -- "Perceive · Reason · Act · Evaluate · Persist"
+```
+
+**Reference:** `.claude/skills/arch-diagram/references/golden-prompt.md`
+
+---
 
 ## Deferred Work — Home Page Redesign (pages/00a_Home.py)
 
