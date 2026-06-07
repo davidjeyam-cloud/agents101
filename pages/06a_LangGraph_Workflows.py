@@ -19,7 +19,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-from utils.diagrams import diagram_langgraph_workflows
+from utils.diagrams import diagram_langgraph_workflows, diagram_lang_arch_map
 from utils.llm import MODEL, _client
 
 # ── Title ─────────────────────────────────────────────────────────────────────
@@ -29,10 +29,33 @@ st.caption(
     "Same logic, typed state, built-in streaming and persistence."
 )
 
+# ── Architecture Map anchor ────────────────────────────────────────────────────
+with st.expander("🗺️ Full Architecture Map — LangChain + LangGraph (read this first)", expanded=False):
+    st.image(diagram_lang_arch_map(), use_container_width=True,
+             caption="LangChain + LangGraph Agentic AI Architecture — every layer maps to course phases you already built")
+    st.markdown("""
+**How to read this diagram — course cross-reference:**
+
+| Layer | What it is | Course phases that cover it | This Phase 10 page |
+|---|---|---|---|
+| **1 — Entry** | How requests enter the system (API, chat, docs) | Phase 1 (Augmented LLM) | —  |
+| **2 — Orchestration** | StateGraph, conditional routing, subgraphs | Phase 2 (Workflow Patterns) | **10a — this page** |
+| **3 — Agent Nodes** | ReAct, Reflection, Supervisor, Guard, Planner | Phase 3 (Core Agents) | **10b** |
+| **4 — Memory & Context** | Checkpointers, Memory Store, Vector Store | Phase 1b, 5a, 5b | **10b2** |
+| **5 — Tools** | @tool, ToolNode, MCP adapters, Guard Agent | Phase 1c, 4a, 4b, 6b | **10b3** |
+| **6 — Model Layer** | Chat LLMs, Embeddings, Structured Output | Throughout course | **10d** |
+| **LangSmith panel** | Auto-tracing, evals, Prompt Hub | Phase 7a, 4d | **10c** |
+| **Platform panel** | Deploy, Studio UI, Durable Execution | Phase 7 (Production) | **10b4** |
+| **Agent Loop panel** | Perceive→Reason→Act→Evaluate→Persist | Andrew Ng's 4 patterns | **10b + 10b4** |
+
+**Key insight:** You have already built every concept in this diagram — in Phases 1–9 using raw Python.
+Phase 10 shows you the same patterns expressed through the LangChain/LangGraph framework layer.
+""")
+
 # ── Diagram ───────────────────────────────────────────────────────────────────
 st.image(diagram_langgraph_workflows(),
          caption="Left: the raw Python you wrote in Phase 2. Right: LangGraph doing the same thing.",
-         use_column_width=True)
+         use_container_width=True)
 
 st.markdown(
     """
@@ -156,6 +179,10 @@ with tab_chain:
     col1, col2 = st.columns(2)
     raw_trace = lg_trace = []
 
+    # Session state for manual chain results (persists across reruns)
+    if "manual_2a_rows" not in st.session_state:
+        st.session_state.manual_2a_rows = None
+
     with col1:
         st.markdown("#### What you wrote in Phase 2a")
         if st.button("Run Manual", key="run_manual"):
@@ -164,14 +191,36 @@ with tab_chain:
                 r = client.models.generate_content(model=MODEL, contents=prompt)
                 return r.text.strip()
             with st.spinner("Running manual chain..."):
-                outline = call(f"Write a 3-point blog outline for: {topic}")
-                draft   = call(f"Write a short intro paragraph from this outline:\n{outline}")
-                final   = call(f"Tighten this paragraph to 2 sentences:\n{draft}")
-            raw_trace = [("outline_prompt", f"Write a 3-point blog outline for: {topic}", outline),
-                         ("draft_prompt",   f"Write a short intro paragraph from outline", draft),
-                         ("polish_prompt",  "Tighten to 2 sentences", final)]
+                p1 = f"Write a 3-point blog outline for: {topic}"
+                outline = call(p1)
+                p2 = f"Write a short intro paragraph from this outline:\n{outline}"
+                draft   = call(p2)
+                p3 = f"Tighten this paragraph to 2 sentences:\n{draft}"
+                final   = call(p3)
+            raw_trace = [("outline_prompt", p1, outline),
+                         ("draft_prompt",   p2, draft),
+                         ("polish_prompt",  p3, final)]
+            st.session_state.manual_2a_rows = [
+                {"Step": "1 — Outline", "Input sent to LLM": p1,      "Output received": outline},
+                {"Step": "2 — Draft",   "Input sent to LLM": p2,      "Output received": draft},
+                {"Step": "3 — Polish",  "Input sent to LLM": p3,      "Output received": final},
+            ]
             st.success(final)
-            st.caption("3 sequential LLM calls, manual result-passing")
+            st.caption("3 sequential LLM calls — output of each step feeds the next")
+
+        if st.session_state.manual_2a_rows:
+            st.markdown("**What was passed in and what came back — per step:**")
+            st.dataframe(
+                st.session_state.manual_2a_rows,
+                use_container_width=True,
+                column_config={
+                    "Step": st.column_config.TextColumn("Step", width=120),
+                    "Input sent to LLM": st.column_config.TextColumn(
+                        "Input sent to LLM", width="large"),
+                    "Output received": st.column_config.TextColumn(
+                        "Output received", width="large"),
+                },
+            )
 
     with col2:
         st.markdown("#### LangGraph StateGraph")
@@ -302,6 +351,219 @@ graph.add_conditional_edges("evaluate", route_after_eval,
 app = graph.compile(recursion_limit=10)   # replaces while i < MAX_ITER
 ''', language="python")
     st.info("**Key insight:** The `recursion_limit` replaces your manual `while i < MAX_ITER` guard. The loop structure is identical — LangGraph just makes the cycle a first-class graph edge.")
+
+st.markdown("---")
+
+# ── State Management deep-dive ────────────────────────────────────────────────
+with st.expander("📐 State Management — Annotated fields, reducers, and the add_messages pattern"):
+    st.markdown("""
+**Why reducers matter:** When a graph node returns a value, LangGraph needs to know
+*how* to merge it into the shared state. By default it overwrites. A **reducer** changes that.
+
+| State field type | What happens on update | Use case |
+|---|---|---|
+| Plain `str`, `int` | Overwritten — last write wins | counters, scores, current status |
+| `Annotated[list, operator.add]` | Appended — each update extends the list | collecting results across parallel nodes |
+| `Annotated[list, add_messages]` | Messages appended, deduped by ID | conversation history (the standard pattern) |
+""")
+    st.code('''
+from typing import TypedDict, Annotated
+import operator
+from langgraph.graph.message import add_messages
+from langchain_core.messages import HumanMessage, AIMessage
+
+# ── Option 1: plain field (overwrites) ────────────────────────────────────────
+class SimpleState(TypedDict):
+    score: int          # each node that sets score= overwrites the previous value
+
+# ── Option 2: Annotated list (appends) ───────────────────────────────────────
+class CollectState(TypedDict):
+    results: Annotated[list, operator.add]   # parallel nodes each contribute
+    # node A returns {"results": ["A done"]}
+    # node B returns {"results": ["B done"]}
+    # final state: {"results": ["A done", "B done"]}  ← merged, not overwritten
+
+# ── Option 3: add_messages (the standard for chat agents) ────────────────────
+class AgentState(TypedDict):
+    messages: Annotated[list, add_messages]  # handles HumanMessage/AIMessage/ToolMessage
+    # add_messages also deduplicates by message id — safe for streaming
+
+# ── Every LangGraph agent uses this pattern: ──────────────────────────────────
+from langgraph.prebuilt import create_react_agent
+# create_react_agent uses MessagesState internally — which is just:
+# class MessagesState(TypedDict):
+#     messages: Annotated[list, add_messages]
+''', language="python")
+    st.info("**Phase 1b connection:** You manually did `history.append(turn)` on every call. "
+            "`add_messages` is that exact append — but declared once in the state type and applied automatically.")
+
+# ── Subgraphs ─────────────────────────────────────────────────────────────────
+st.markdown("---")
+st.markdown("### Advanced Patterns — Subgraphs and Map-Reduce")
+tab_sub, tab_mr = st.tabs(["🔲 Subgraphs — Modular Composition", "🔀 Map-Reduce — Parallel Fan-Out"])
+
+with tab_sub:
+    st.markdown("**Subgraphs** let you nest one `StateGraph` inside another — modular composition at graph level.")
+    st.markdown("""
+| Phase 2d Manual | Subgraph Equivalent |
+|---|---|
+| `orchestrator_fn()` calls `worker_fn()` directly | Parent graph node delegates to compiled sub-graph |
+| Worker result returned as dict | Sub-graph has its own `State` and `START/END` |
+| No isolation between orchestrator and workers | Sub-graph state is encapsulated |
+| Difficult to reuse worker logic | Sub-graph compiles once, reused anywhere |
+""")
+    st.code('''
+from langgraph.graph import StateGraph, START, END
+from typing import TypedDict
+
+# ── Sub-graph: a complete workflow in itself ──────────────────────────────────
+class ResearchState(TypedDict):
+    topic: str
+    summary: str
+
+def search_node(state: ResearchState):
+    return {"summary": f"Search results for: {state['topic']}"}
+
+def summarise_node(state: ResearchState):
+    return {"summary": f"Summary: {state['summary'][:100]}"}
+
+research_sg = StateGraph(ResearchState)
+research_sg.add_node("search",    search_node)
+research_sg.add_node("summarise", summarise_node)
+research_sg.add_edge(START, "search")
+research_sg.add_edge("search", "summarise")
+research_sg.add_edge("summarise", END)
+research_compiled = research_sg.compile()   # ← a complete runnable
+
+# ── Parent graph: treats sub-graph as a node ──────────────────────────────────
+class PaperState(TypedDict):
+    topic: str
+    summary: str     # passed in/out of sub-graph
+    final_paper: str
+
+def write_node(state: PaperState):
+    return {"final_paper": f"Paper about {state['topic']}:\\n\\n{state['summary']}"}
+
+parent = StateGraph(PaperState)
+parent.add_node("research", research_compiled)   # ← sub-graph as a node
+parent.add_node("write",    write_node)
+parent.add_edge(START,      "research")
+parent.add_edge("research", "write")
+parent.add_edge("write",    END)
+app = parent.compile()
+result = app.invoke({"topic": "Agentic AI", "summary": "", "final_paper": ""})
+''', language="python")
+    st.info("**Key insight:** `research_compiled` is just another node to the parent graph. "
+            "You can share, version, and test sub-graphs independently — the same modular design "
+            "you would use in any software system.")
+
+    # Live demo
+    if st.button("Run subgraph demo", key="run_subgraph"):
+        try:
+            from langgraph.graph import StateGraph, START, END
+            from langchain_google_genai import ChatGoogleGenerativeAI
+            from typing import TypedDict
+            import os
+
+            class ResearchState(TypedDict):
+                topic: str; summary: str
+
+            class PaperState(TypedDict):
+                topic: str; summary: str; final_paper: str
+
+            llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash",
+                                         google_api_key=os.getenv("GEMINI_API_KEY"))
+
+            def search_node(state):
+                r = llm.invoke(f"Give 3 bullet-point facts about: {state['topic']}")
+                return {"summary": r.content}
+
+            def write_node(state):
+                r = llm.invoke(f"Write a 2-sentence paper intro using these facts:\n{state['summary']}")
+                return {"final_paper": r.content}
+
+            sg = StateGraph(ResearchState)
+            sg.add_node("search", search_node)
+            sg.add_edge(START, "search"); sg.add_edge("search", END)
+            sg_compiled = sg.compile()
+
+            pg = StateGraph(PaperState)
+            pg.add_node("research", sg_compiled)
+            pg.add_node("write", write_node)
+            pg.add_edge(START, "research"); pg.add_edge("research", "write"); pg.add_edge("write", END)
+            app = pg.compile()
+
+            topic = st.session_state.get("subgraph_topic", "Agentic AI in 2026")
+            with st.spinner("Running parent → sub-graph → write..."):
+                steps = []
+                for chunk in app.stream({"topic": topic, "summary": "", "final_paper": ""}):
+                    for node, data in chunk.items():
+                        steps.append((node, data))
+                        st.caption(f"✓ node `{node}` complete")
+
+            final = steps[-1][1]
+            st.success(final.get("final_paper", ""))
+            with st.expander("🔬 Execution Trace — subgraph flow"):
+                for name, data in steps:
+                    st.markdown(f"**Node `{name}`:** {list(data.keys())}")
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+    topic_in = st.text_input("Topic:", value="Agentic AI in 2026", key="subgraph_topic")
+
+with tab_mr:
+    st.markdown("**Map-Reduce** fans out to N parallel nodes, each writes to an `Annotated[list]` field, "
+                "then a reducer merges all results automatically.")
+    st.markdown("""
+| Phase 2c Manual | LangGraph Map-Reduce |
+|---|---|
+| `ThreadPoolExecutor` fan-out | `Send()` API fans out dynamically |
+| Manual `results.append(r)` in each thread | `Annotated[list, operator.add]` reducer merges |
+| Fixed number of workers | Dynamic: N determined at runtime |
+| Manual merge step | Merge is automatic via reducer |
+""")
+    st.code('''
+from langgraph.graph import StateGraph, START, END
+from langgraph.types import Send
+from typing import TypedDict, Annotated
+import operator
+
+class MapState(TypedDict):
+    topics: list[str]                            # input: N topics
+    summaries: Annotated[list, operator.add]     # reducer: each node appends
+
+class WorkerState(TypedDict):
+    topic: str
+    summaries: Annotated[list, operator.add]
+
+# Fan-out function: returns a Send() for each item ─── this IS the map
+def fan_out(state: MapState):
+    return [Send("summarise", {"topic": t, "summaries": []}) for t in state["topics"]]
+
+# Worker node: processes ONE item, appends to shared list
+def summarise(state: WorkerState):
+    summary = llm(f"Summarise in 1 sentence: {state['topic']}")
+    return {"summaries": [summary]}              # list — reducer appends this
+
+# Reduce node: all summaries already merged by reducer
+def aggregate(state: MapState):
+    combined = "\\n".join(f"• {s}" for s in state["summaries"])
+    return {"summaries": [f"COMBINED:\\n{combined}"]}
+
+g = StateGraph(MapState)
+g.add_node("summarise", summarise)
+g.add_node("aggregate", aggregate)
+g.add_conditional_edges(START, fan_out, ["summarise"])   # dynamic fan-out
+g.add_edge("summarise", "aggregate")
+g.add_edge("aggregate", END)
+app = g.compile()
+
+result = app.invoke({"topics": ["ReAct","Reflection","Planning"], "summaries": []})
+# result["summaries"] = ["• ReAct: ...", "• Reflection: ...", "• Planning: ...", "COMBINED: ..."]
+''', language="python")
+    st.info("**Key insight:** The `Annotated[list, operator.add]` reducer is what enables safe parallel writes. "
+            "Each worker node runs independently and returns `{\"summaries\": [its_result]}`. "
+            "LangGraph merges all the lists automatically — no locks, no race conditions.")
 
 st.markdown("---")
 st.markdown("### What's next → Phase 10b — LangGraph Agents")

@@ -74,8 +74,11 @@ pg = st.navigation({
         st.Page("pages/05_Best_Practices.py", title="9 — Best Practices"),
     ],
     "Phase 10 — Frameworks": [
-        st.Page("pages/06a_LangGraph_Workflows.py", title="10a — LangGraph Workflows"),
+        st.Page("pages/06a_LangGraph_Workflows.py",  title="10a — LangGraph Workflows"),
         st.Page("pages/06b_LangGraph_Agents.py",    title="10b — LangGraph Agents"),
+        st.Page("pages/06a1_LangGraph_Memory.py",   title="10b2 — LangGraph Memory"),
+        st.Page("pages/06a2_LangGraph_Tools.py",    title="10b3 — LangGraph Tools"),
+        st.Page("pages/06a3_LangGraph_Platform.py", title="10b4 — LangGraph Platform"),
         st.Page("pages/06c_LangSmith.py",           title="10c — LangSmith"),
         st.Page("pages/06d_LangChain.py",           title="10d — LangChain"),
         st.Page("pages/06e_GoogleADK.py",           title="10e — Google ADK"),

@@ -393,58 +393,165 @@ def diagram_1d() -> bytes:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def diagram_2a() -> bytes:
-    """Sequential chain: each LLM call output feeds the next input."""
-    fig, ax = _fig()
+    """Sequential chain — light professional template-style architecture diagram."""
+    XW, YH = 12.0, 7.2
+    fig, ax = plt.subplots(figsize=(12, 7.2))
+    ax.set_xlim(0, XW); ax.set_ylim(1.0, YH)
+    ax.axis("off")
+    BG = "#F8FAFC"
+    ax.set_facecolor(BG); fig.patch.set_facecolor(BG)
 
-    _agent_banner(ax, is_agent=False,
-                  why="YOUR code defines every step in the sequence — LLM does not decide what comes next")
+    # Semantic palette
+    _B  = "#1D4ED8"; _BL = "#EFF6FF"   # blue   — input
+    _IN = "#4338CA"; _IL = "#EEF2FF"   # indigo — LLM steps
+    _AM = "#B45309"; _AL = "#FFFBEB"   # amber  — gate
+    _GR = "#047857"; _GL = "#ECFDF5"   # green  — output
+    _RE = "#B91C1C"; _RL = "#FEF2F2"   # red    — NOT AN AGENT
+    _SL = "#334155"                    # slate  — body text
+    _DM = "#94A3B8"                    # dim    — muted
 
-    ax.text(W/2, 3.75, "2a — Prompt Chaining  (Workflow Pattern 1 of 5)",
-            ha="center", fontsize=11, fontweight="bold", color="#1C2833")
-    ax.text(W/2, 3.5,
-            "Each LLM call's output becomes the next call's input · sequence is fixed by your code",
-            ha="center", fontsize=8.2, color="#566573", style="italic")
+    # ── NOT AN AGENT banner (slim, top) ──────────────────────────────────────
+    ax.add_patch(plt.Rectangle((0, 6.82), XW, 0.38,
+                               facecolor=_RL, edgecolor="none", zorder=6))
+    ax.plot([0, XW], [6.82, 6.82], color=_RE, lw=1.5, zorder=7)
+    ax.text(XW/2, 7.01,
+            "NOT AN AGENT  —  YOUR code defines every step  |  LLM does not decide what comes next",
+            ha="center", va="center", fontsize=8.5,
+            color=_RE, fontweight="bold", zorder=8)
 
-    # ── Boxes ─────────────────────────────────────────────────────────────────
-    _box(ax, 0.55, 2.2, "Customer\nComplaint", C["input"],  w=1.0, h=0.65)
-    _box(ax, 1.9,  2.2, "LLM\nClassify",       C["llm"],   w=1.1, h=0.65)
-    _box(ax, 3.1,  2.2, "Gate\n✓ / ✗",         C["loop"],  w=0.8, h=0.65)
-    _box(ax, 4.3,  2.2, "LLM\nDraft Reply",     C["llm"],   w=1.1, h=0.65)
-    _box(ax, 5.7,  2.2, "LLM\nPolish",          C["llm"],   w=1.0, h=0.65)
-    _box(ax, 6.7,  2.2, "Final\nEmail",          C["output"],w=0.85,h=0.65)
+    # ── Title ─────────────────────────────────────────────────────────────────
+    ax.text(XW/2, 6.54, "2a  —  Prompt Chaining",
+            ha="center", fontsize=19, fontweight="bold", color="#0F172A")
+    ax.text(XW/2, 6.30,
+            "Workflow Pattern 1 of 5   |   Each LLM call output becomes the next input   |   Sequence fixed by your code",
+            ha="center", fontsize=8.5, color=_SL)
+    ax.plot([1.4, XW - 0.2], [6.16, 6.16], color="#CBD5E1", lw=0.9)
 
-    # ── Arrows ────────────────────────────────────────────────────────────────
-    _arrow(ax, 1.05, 2.2, 1.34, 2.2)
-    _arrow(ax, 2.45, 2.2, 2.7,  2.2)
-    _arrow(ax, 3.5,  2.2, 3.74, 2.2)
-    _arrow(ax, 4.85, 2.2, 5.2,  2.2)
-    _arrow(ax, 6.2,  2.2, 6.27, 2.2)
+    # ── Left numbered badge (template-style section label) ────────────────────
+    BX, BW, BCY, BH = 0.08, 1.14, 4.30, 2.10
+    ax.add_patch(FancyBboxPatch((BX, BCY - BH/2), BW, BH,
+                               boxstyle="round,pad=0.08",
+                               facecolor="#3730A3", edgecolor="none", zorder=3))
+    ax.text(BX + BW/2, BCY + 0.46, "2a",
+            ha="center", va="center", fontsize=22,
+            color="white", fontweight="bold", zorder=4)
+    ax.text(BX + BW/2, BCY + 0.02, "PROMPT\nCHAINING",
+            ha="center", va="center", fontsize=8.5,
+            color="white", fontweight="bold", zorder=4, linespacing=1.4)
+    ax.text(BX + BW/2, BCY - 0.60, "Workflow\nPattern 1/5",
+            ha="center", va="center", fontsize=7,
+            color="#C7D2FE", zorder=4, linespacing=1.4)
 
-    # ── Data labels below arrows ───────────────────────────────────────────────
-    for x, lbl in [(1.2, "text"), (2.57, "category"), (3.62, "draft"), (5.02, "polished")]:
-        ax.text(x, 1.82, lbl, ha="center", fontsize=7, color=C["arrow"],
-                style="italic")
+    # ── Node geometry ─────────────────────────────────────────────────────────
+    NW, NH = 1.42, 1.10
+    CY = 4.30
+    Y_TOP = CY + NH / 2    # 4.85
+    Y_BOT = CY - NH / 2    # 3.75
 
-    # ── Gate stop path ────────────────────────────────────────────────────────
-    ax.annotate("", xy=(3.1, 1.35), xytext=(3.1, 1.87),
-                arrowprops=dict(arrowstyle="-|>", color=C["loop"], lw=1.5), zorder=5)
-    ax.text(3.1, 1.18, "✗ stop\n(e.g. spam)", ha="center", fontsize=7,
-            color=C["loop"], fontweight="bold")
+    # (cx, type_label, main_label, col, col_light)
+    _ns = [
+        (2.01,  "INPUT",  "Customer\nComplaint",  _B,  _BL),
+        (3.73,  "STEP 1", "LLM\nClassify",        _IN, _IL),
+        (5.45,  "GATE",   "Quality\nCheck",        _AM, _AL),
+        (7.17,  "STEP 2", "LLM\nDraft Reply",     _IN, _IL),
+        (8.89,  "STEP 3", "LLM\nPolish",          _IN, _IL),
+        (10.61, "OUTPUT", "Final\nEmail",          _GR, _GL),
+    ]
 
-    # ── Step badges ───────────────────────────────────────────────────────────
-    for x, lbl in [(1.9, "Step 1"), (3.1, "Gate"), (4.3, "Step 2"), (5.7, "Step 3")]:
-        _badge(ax, x, 2.72, lbl, C["llm"] if "Step" in lbl else C["loop"], fontsize=7)
+    for cx, type_lbl, main_lbl, col, col_l in _ns:
+        # Card shadow
+        ax.add_patch(FancyBboxPatch(
+            (cx - NW/2 + 0.04, Y_BOT - 0.06), NW, NH,
+            boxstyle="round,pad=0.10", facecolor="#94A3B8",
+            alpha=0.18, edgecolor="none", zorder=2))
+        # Card (white fill, colored border)
+        ax.add_patch(FancyBboxPatch(
+            (cx - NW/2, Y_BOT), NW, NH,
+            boxstyle="round,pad=0.10", facecolor="white",
+            edgecolor=col, linewidth=2.2, zorder=3))
+        # Type badge pinned to top of card
+        ax.text(cx, Y_TOP + 0.01, type_lbl,
+                ha="center", va="center",
+                fontsize=7, fontweight="bold", color="white", zorder=6,
+                bbox=dict(boxstyle="round,pad=0.22", facecolor=col,
+                          edgecolor="none"))
+        # Main label
+        ax.text(cx, CY, main_lbl,
+                ha="center", va="center",
+                fontsize=10, color=col, fontweight="bold",
+                zorder=5, multialignment="center", linespacing=1.30)
 
-    # ── Key note ──────────────────────────────────────────────────────────────
-    ax.text(W/2, 1.42,
-            "YOUR code wired Step1 → Gate → Step2 → Step3.  "
-            "The LLM never decides what happens next — it only processes its own step.",
-            ha="center", fontsize=7.8, color=C["note_ok"], style="italic")
+    # ── Flow arrows + data labels ─────────────────────────────────────────────
+    for lbl, i, j in [("text", 0, 1), ("category", 1, 2), ("draft", 2, 3),
+                       ("polished", 3, 4), ("", 4, 5)]:
+        x1 = _ns[i][0] + NW / 2
+        x2 = _ns[j][0] - NW / 2
+        ax.annotate("", xy=(x2, CY), xytext=(x1, CY),
+                    arrowprops=dict(arrowstyle="-|>",
+                                   color="#64748B", lw=2.0,
+                                   mutation_scale=14), zorder=7)
+        if lbl:
+            ax.text((x1 + x2) / 2, CY + 0.22, lbl,
+                    ha="center", fontsize=7.5,
+                    color="#64748B", style="italic", zorder=8)
 
-    # ── Full course journey bar ────────────────────────────────────────────────
-    _journey_bar(ax, current="2a", y=0.95)
+    # ── Gate reject branch ────────────────────────────────────────────────────
+    gate_cx = _ns[2][0]
+    ax.annotate("", xy=(gate_cx, 3.41), xytext=(gate_cx, Y_BOT),
+                arrowprops=dict(arrowstyle="-|>", color=_AM,
+                                lw=2.0, mutation_scale=13), zorder=7)
+    ax.add_patch(FancyBboxPatch(
+        (gate_cx - 0.95, 3.01), 1.90, 0.40,
+        boxstyle="round,pad=0.08", facecolor=_AL,
+        edgecolor=_AM, linewidth=1.5, zorder=5))
+    ax.text(gate_cx, 3.21, "STOP  —  Spam / Off-topic",
+            ha="center", va="center", fontsize=8,
+            color=_AM, fontweight="bold", zorder=6)
 
-    _agent_def_footer(ax)
+    # ── Key insight note box ──────────────────────────────────────────────────
+    NOTE_CY = 2.65
+    ax.add_patch(FancyBboxPatch(
+        (1.3, NOTE_CY - 0.23), XW - 1.6, 0.46,
+        boxstyle="round,pad=0.08", facecolor="#F0F9FF",
+        edgecolor="#BAE6FD", linewidth=1.0, zorder=3))
+    ax.text(XW / 2, NOTE_CY,
+            "YOUR code wired Step 1  ->  Gate  ->  Step 2  ->  Step 3.  "
+            "The LLM processes only its own step — it never decides what comes next.",
+            ha="center", va="center", fontsize=8,
+            color="#0369A1", style="italic", zorder=4)
+
+    # ── Journey bar (light mode) ──────────────────────────────────────────────
+    keys    = [s[0] for s in _STOPS]
+    cur_idx = keys.index("2a")
+    n_stops = len(_STOPS)
+    jy      = 2.05
+    xs      = [1.4 + i * (XW - 1.7) / (n_stops - 1) for i in range(n_stops)]
+    ax.text(XW / 2, jy + 0.22, "Full Course Journey  —  you are here",
+            ha="center", fontsize=7, color=_DM, style="italic")
+    ax.plot([xs[0], xs[-1]], [jy, jy], color=_DM, lw=0.8, zorder=1)
+    for i, (x, (key, short, full)) in enumerate(zip(xs, _STOPS)):
+        if i < cur_idx:
+            fc, ec, ms, lc, fw = _DM,      _DM,      6,  _DM,      "normal"
+        elif i == cur_idx:
+            fc, ec, ms, lc, fw = "#F59E0B", "#F59E0B", 11, "#92400E", "bold"
+        else:
+            fc, ec, ms, lc, fw = BG,        _DM,      6,  _DM,      "normal"
+        ax.plot(x, jy, marker="o", ms=ms,
+                markerfacecolor=fc, markeredgecolor=ec,
+                markeredgewidth=1.3, zorder=3)
+        ax.text(x, jy - 0.13, full if i == cur_idx else short,
+                ha="center", va="top",
+                fontsize=6 if i != cur_idx else 7,
+                color=lc, fontweight=fw, multialignment="center", zorder=4)
+
+    # ── Footer ────────────────────────────────────────────────────────────────
+    ax.plot([0.5, XW - 0.5], [1.52, 1.52], color="#E2E8F0", lw=0.8)
+    ax.text(XW / 2, 1.35,
+            'Anthropic definition:  '
+            '"An Agent is an LLM that dynamically directs its own processes and tool usage"',
+            ha="center", va="center", fontsize=7.5,
+            color=_DM, style="italic")
+
     return _to_bytes(fig)
 
 
@@ -2558,6 +2665,10 @@ from utils._diagram_phase10 import _ph10_diagrams as _ph10
  diagram_langsmith,
  diagram_langchain,
  diagram_framework_compare,
- diagram_google_adk) = _ph10(
+ diagram_google_adk,
+ diagram_lang_arch_map,
+ diagram_langgraph_memory,
+ diagram_langgraph_tools_security,
+ diagram_langgraph_platform) = _ph10(
     C, W, H, _fig, _box, _arrow, _agent_banner, _journey_bar,
     _agent_def_footer, _to_bytes)

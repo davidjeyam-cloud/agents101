@@ -30,7 +30,7 @@ st.caption(
 # ── Diagram ───────────────────────────────────────────────────────────────────
 st.image(diagram_langsmith(),
          caption="Phase 7 manual TraceCollector vs LangSmith auto-tracing",
-         use_column_width=True)
+         use_container_width=True)
 
 st.markdown(
     """
@@ -146,10 +146,13 @@ st.markdown("---")
 # ── Interactive demo ──────────────────────────────────────────────────────────
 st.markdown("### Interactive Demo")
 
-tab_compare, tab_setup, tab_eval = st.tabs([
+tab_compare, tab_setup, tab_eval, tab_hub, tab_alerts, tab_gov = st.tabs([
     "Phase 7 vs LangSmith",
     "Setup & Configuration",
     "Evaluation Framework",
+    "Prompt Hub",
+    "Alerts & Feedback",
+    "Governance & Audit",
 ])
 
 # ── TAB: Compare ─────────────────────────────────────────────────────────────
@@ -350,9 +353,230 @@ results = evaluate(
             ]
         })
 
+# ── TAB: Prompt Hub ──────────────────────────────────────────────────────────
+with tab_hub:
+    st.markdown("**Prompt Hub — version-controlled, shareable prompts**")
+    st.markdown("""
+The Prompt Hub solves prompt drift: your agent's system prompt changes, but you don't know
+when it changed or what the previous version was. Prompt Hub applies Git-style versioning to prompts.
+
+| Without Prompt Hub | With Prompt Hub |
+|---|---|
+| Prompt in code as a string | Prompt stored in LangSmith UI |
+| No history of changes | Full version history, diff between versions |
+| Different prompt per environment | Pin a specific commit hash per env |
+| Hard to A/B test prompts | Run evaluation on v1 vs v2 prompt |
+| Shared via Slack or copy-paste | Shared via `hub.pull("owner/prompt-name")` |
+""")
+    st.code('''
+# ── Push a prompt to Prompt Hub ───────────────────────────────────────────────
+from langsmith import Client
+from langchain_core.prompts import ChatPromptTemplate
+
+client = Client()
+
+# Define your prompt
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a helpful agentic AI assistant. Be concise and precise."),
+    ("user",   "{question}"),
+])
+
+# Push to Prompt Hub (creates a versioned entry at smith.langchain.com)
+client.push_prompt("agents101/qa-assistant", object=prompt)
+# → available at: https://smith.langchain.com/hub/your-name/agents101-qa-assistant
+
+# ── Pull in any codebase — no local prompt strings ───────────────────────────
+from langchain import hub
+
+# Pull latest version
+prompt = hub.pull("agents101/qa-assistant")
+
+# Pin a specific commit (for production — never change unexpectedly)
+prompt = hub.pull("agents101/qa-assistant:abc123def")
+
+# Use exactly like any ChatPromptTemplate
+chain = prompt | llm
+result = chain.invoke({"question": "What is LangGraph?"})
+
+# ── A/B test two prompt versions ─────────────────────────────────────────────
+prompt_v1 = hub.pull("agents101/qa-assistant:v1")
+prompt_v2 = hub.pull("agents101/qa-assistant:v2")
+
+chain_v1 = prompt_v1 | llm
+chain_v2 = prompt_v2 | llm
+
+# Then run LangSmith evaluate() on both — compare scores side-by-side
+''', language="python")
+
+    if st.button("Show prompt versioning simulation", key="show_hub"):
+        client = _client()
+        import time
+        versions = [
+            {"version": "v1 (initial)", "prompt": "You are a helpful assistant.", "score": 0.71},
+            {"version": "v2 (added concise)", "prompt": "You are a helpful assistant. Be concise.", "score": 0.78},
+            {"version": "v3 (current)", "prompt": "You are a helpful agentic AI assistant. Be concise and precise.", "score": 0.89},
+        ]
+        for v in versions:
+            col1, col2 = st.columns([2, 1])
+            with col1:
+                st.code(f"[{v['version']}]\n{v['prompt']}", language="text")
+            with col2:
+                st.metric("Eval score", v['score'], delta=None)
+        st.caption("Prompt Hub stores each change — you can roll back to v1 with hub.pull('name:v1')")
+
+# ── TAB: Alerts & Feedback ────────────────────────────────────────────────────
+with tab_alerts:
+    st.markdown("**Alerts & Feedback API — production monitoring**")
+    st.markdown("""
+| Monitoring type | What it does | Trigger |
+|---|---|---|
+| **Latency alert** | Notify when p95 latency > threshold | `latency_ms > 5000` |
+| **Error rate alert** | Notify when error % spikes | `error_rate > 5%` |
+| **Cost alert** | Notify when daily spend exceeds budget | `daily_cost_usd > 10` |
+| **Feedback API** | Collect thumbs-up/down from users | `client.create_feedback(run_id, ...)` |
+| **Online eval** | Auto-score every production run | `evaluator runs continuously` |
+""")
+    st.code('''
+# ── Feedback API — capture user ratings on production runs ────────────────────
+from langsmith import Client
+client = Client()
+
+# After showing a response to the user:
+def record_user_feedback(run_id: str, helpful: bool, comment: str = ""):
+    client.create_feedback(
+        run_id=run_id,
+        key="user-helpful",
+        score=1.0 if helpful else 0.0,
+        comment=comment,
+    )
+    # → Appears in LangSmith UI as a feedback annotation on the run
+
+# ── Get the run_id from a LangChain call ──────────────────────────────────────
+from langchain_core.tracers.context import collect_runs
+
+with collect_runs() as cb:
+    result = chain.invoke({"question": "What is ReAct?"})
+    run_id = cb.traced_runs[0].id
+
+# After user clicks 👍 or 👎:
+record_user_feedback(run_id, helpful=True, comment="Clear explanation")
+
+# ── Online evaluator — score every production run automatically ───────────────
+# Configured in LangSmith UI: Monitoring > Online Evaluations
+# Fires your evaluator function on each new run as it arrives
+# No batch job needed — continuous sampling
+
+# ── Alert rules (set in LangSmith UI, not code) ───────────────────────────────
+# Monitoring > Alerts > New Alert
+# - Metric: p95_latency | Threshold: > 3000ms | Channel: Slack / Email
+# - Metric: error_rate   | Threshold: > 5%    | Channel: PagerDuty
+# - Metric: total_cost   | Threshold: > $5/hr | Channel: Email
+''', language="python")
+
+    if st.button("Simulate feedback capture", key="run_feedback"):
+        import uuid
+        fake_run_id = str(uuid.uuid4())
+        st.json({
+            "run_id": fake_run_id,
+            "feedback_key": "user-helpful",
+            "score": 1.0,
+            "comment": "Clear and accurate explanation",
+            "created_at": "2026-06-07T09:00:00Z",
+            "project": "agents101",
+        })
+        st.caption(f"Feedback for run {fake_run_id[:8]}... recorded in LangSmith — "
+                   "visible in run detail view alongside the trace")
+        with st.expander("🔬 Execution Trace — feedback loop"):
+            st.code(
+                "User sees response → clicks 👍\n"
+                "Frontend calls record_user_feedback(run_id, helpful=True)\n"
+                "LangSmith annotates run with score=1.0\n"
+                "LangSmith dashboard: avg feedback score = 0.84 over last 100 runs\n"
+                "Alert: if avg drops below 0.6 → Slack notification fires", language="text"
+            )
+
+# ── TAB: Governance ────────────────────────────────────────────────────────────
+with tab_gov:
+    st.markdown("**Governance & Audit Trails — compliance and accountability**")
+    st.markdown("""
+Governance answers the question: *"What did the agent do, and why, and who authorised it?"*
+
+| Governance need | LangSmith capability |
+|---|---|
+| Immutable audit log | Every run stored with inputs/outputs, timestamp, user |
+| Who ran what | `run.metadata["user_id"]` tag on every trace |
+| Prompt accountability | Prompt Hub + version pinning = "agent used prompt v3 at 14:32" |
+| Cost accountability | Per-user, per-project cost breakdown |
+| Compliance export | `client.list_runs()` → export as JSON/CSV |
+| Data residency | LangSmith EU endpoint or self-hosted option |
+""")
+    st.code('''
+# ── Tag runs with user/session metadata ───────────────────────────────────────
+from langchain_core.runnables import RunnableConfig
+
+config = RunnableConfig(
+    metadata={
+        "user_id":     "alice@company.com",
+        "session_id":  "sess-abc123",
+        "feature":     "fraud-detection-agent",
+        "version":     "v2.1.0",
+    },
+    tags=["production", "fraud-detection"],
+)
+result = graph.invoke({"messages": [("user", query)]}, config)
+# → All metadata attached to the LangSmith run — searchable, filterable
+
+# ── Audit export — pull all runs for a user ───────────────────────────────────
+from langsmith import Client
+client = Client()
+
+runs = client.list_runs(
+    project_name="agents101-prod",
+    filter=\'and(eq(metadata_key, "user_id"), eq(metadata_value, "alice@company.com"))\',
+    start_time=datetime(2026, 6, 1),
+)
+for run in runs:
+    print(run.id, run.inputs, run.outputs, run.total_tokens, run.total_cost)
+
+# ── Data redaction — never log PII ────────────────────────────────────────────
+# In .env: LANGCHAIN_HIDE_INPUTS=true  (hides prompt content from LangSmith)
+# Use for regulated industries (healthcare, finance) where prompts contain PII
+# Traces still show timing + tokens, but not message content
+
+# ── Self-hosted LangSmith (enterprise) ───────────────────────────────────────
+# docker run langchain/langsmith-backend + langchain/langsmith-frontend
+# Point LANGCHAIN_ENDPOINT to your own server
+# Full data residency — nothing leaves your network
+os.environ["LANGCHAIN_ENDPOINT"] = "https://langsmith.your-company.com"
+''', language="python")
+
+    st.markdown("---")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("**Regulatory use cases:**")
+        st.markdown("""
+- **Financial services**: audit trail of every automated decision + human approval
+- **Healthcare**: HIPAA — `LANGCHAIN_HIDE_INPUTS=true` to avoid PHI in logs
+- **Legal**: immutable record of what the AI said, when, under which prompt version
+- **Enterprise**: per-team cost allocation, quota management
+""")
+    with col2:
+        st.markdown("**Governance checklist:**")
+        items = [
+            "Metadata tagging: user_id + session_id on every run",
+            "Prompt Hub: all prompts versioned, no free-form strings in prod",
+            "HITL audit: every interrupt + resume logged (10b3)",
+            "LANGCHAIN_HIDE_INPUTS for sensitive data",
+            "Alert on error rate > 5% and cost > budget",
+            "Monthly audit export reviewed by compliance team",
+        ]
+        for item in items:
+            st.checkbox(item, key=f"gov_{item[:15]}")
+
 st.markdown("---")
 st.markdown("### What's next → Phase 10d — LangChain")
 st.markdown(
     "Phase 1 memory management and Phase 5 RAG pipeline as LangChain LCEL. "
-    "The pipe operator `prompt | llm | parser` is Prompt Chaining as syntax sugar."
+    "The pipe operator `prompt | llm | parser` is Prompt Chaining as syntax sugar. "
+    "Now also includes Structured Output (`.with_structured_output()`) and the @tool ecosystem."
 )

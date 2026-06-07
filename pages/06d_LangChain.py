@@ -29,7 +29,7 @@ st.caption(
 # ── Diagram ───────────────────────────────────────────────────────────────────
 st.image(diagram_langchain(),
          caption="Each LCEL component maps directly to a phase you already completed — same concept, pipe syntax.",
-         use_column_width=True)
+         use_container_width=True)
 
 st.markdown(
     """
@@ -154,10 +154,12 @@ st.markdown("---")
 # ── Interactive demo ──────────────────────────────────────────────────────────
 st.markdown("### Interactive Demo")
 
-tab_lcel, tab_memory, tab_rag = st.tabs([
+tab_lcel, tab_memory, tab_rag, tab_struct, tab_tools = st.tabs([
     "LCEL Chain vs Phase 1a",
     "Memory Chain vs Phase 1b",
     "RAG Chain vs Phase 5a",
+    "Structured Output",
+    "Tools Ecosystem",
 ])
 
 # ── TAB: LCEL basic chain ─────────────────────────────────────────────────────
@@ -224,7 +226,7 @@ result = chain.invoke({"question": question})
 | f-string with system instruction | `ChatPromptTemplate.from_messages([("system",...), ("human",...)])` |
 | `client.models.generate_content(model=..., contents=...)` | `ChatGoogleGenerativeAI(model=...)` |
 | `response.text.strip()` | `StrOutputParser()` |
-| Manual function call chain | `prompt \| llm \| parser` |
+| Manual function call chain | `prompt | llm | parser` (pipe syntax) |
 
 **The output is identical.** LCEL gains you: streaming (`.stream()`), batching (`.batch()`),
 async (`.ainvoke()`), and composability with other chains.
@@ -392,6 +394,198 @@ answer = rag_chain.invoke(query)
 
         except Exception as e:
             st.error(f"RAG demo error: {e}")
+
+# ── TAB: Structured Output ───────────────────────────────────────────────────
+with tab_struct:
+    st.markdown("**`.with_structured_output()` — guaranteed JSON shape from any LLM**")
+    st.markdown("""
+| Phase 4d / 4c Manual | `.with_structured_output()` |
+|---|---|
+| Ask LLM for JSON, parse with `re.search(r'\\{.*\\}')` | LLM returns a validated Pydantic object |
+| Hope the LLM follows the schema | Pydantic validation — fails fast if wrong shape |
+| Re-parse on every call | One-time schema definition, reused everywhere |
+| Error-prone string manipulation | `result.sentiment` — attribute access, type-checked |
+| Phase 4d: judge returns score as string | `result.score: float` — native float |
+""")
+    st.code('''
+from pydantic import BaseModel, Field
+from langchain_google_genai import ChatGoogleGenerativeAI
+
+# ── Define the exact output shape ────────────────────────────────────────────
+class AgentEvaluation(BaseModel):
+    """Evaluation of an agent\'s response quality."""
+    summary:    str   = Field(description="One-sentence summary of the response")
+    quality:    str   = Field(description="excellent | good | needs_improvement | poor")
+    score:      float = Field(ge=0.0, le=10.0, description="Numeric quality score 0–10")
+    issues:     list  = Field(description="List of specific issues found (empty if none)")
+    improved:   str   = Field(description="Rewritten response fixing the issues")
+
+# ── Wrap any LLM — returns AgentEvaluation, not a string ─────────────────────
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
+structured_llm = llm.with_structured_output(AgentEvaluation)
+
+# Invoke — always returns a validated AgentEvaluation instance
+result = structured_llm.invoke(
+    "Evaluate this agent response: \'The capital of France is Paris and it is in Europe.\'"
+)
+print(result.quality)       # "excellent"
+print(result.score)         # 9.2  ← float, not "9.2"
+print(result.issues)        # [] or ["Could mention population"]
+print(type(result))         # <class \'AgentEvaluation\'>
+
+# ── Use in a LangGraph node (Phase 10b integration) ───────────────────────────
+def evaluate_node(state):
+    """Structured output in a graph node — guaranteed schema every time."""
+    eval_result = structured_llm.invoke(state["messages"])
+    return {
+        "score":   eval_result.score,
+        "quality": eval_result.quality,
+        "issues":  eval_result.issues,
+    }
+
+# ── Chain with structured output ──────────────────────────────────────────────
+from langchain_core.prompts import ChatPromptTemplate
+eval_prompt = ChatPromptTemplate.from_messages([
+    ("system", "Evaluate the quality of the following text. Be precise."),
+    ("human",  "Text to evaluate: {text}"),
+])
+eval_chain = eval_prompt | structured_llm   # returns AgentEvaluation directly
+''', language="python")
+
+    if st.button("Run structured output demo", key="run_structured_lc"):
+        try:
+            import json, re
+            client = _client()
+            text = "LangChain LCEL allows composing prompt, LLM, and parser components using the pipe operator. It is similar to Unix pipes but for LLM components."
+            prompt = (
+                "Evaluate this text and respond ONLY with valid JSON matching exactly:\n"
+                '{"summary": "...", "quality": "excellent|good|needs_improvement|poor", '
+                '"score": <float 0-10>, "issues": ["..."], "improved": "..."}\n\n'
+                f"Text: {text}"
+            )
+            r = client.models.generate_content(model=MODEL, contents=prompt)
+            raw = r.text
+            m = re.search(r'\{.*\}', raw, re.DOTALL)
+            if m:
+                parsed = json.loads(m.group())
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric("Score", f"{parsed.get('score', 0)}/10")
+                    st.metric("Quality", parsed.get('quality', '—'))
+                with col2:
+                    st.markdown(f"**Summary:** {parsed.get('summary', '')}")
+                    issues = parsed.get('issues', [])
+                    if issues:
+                        st.markdown("**Issues:** " + " · ".join(issues))
+                    else:
+                        st.markdown("**Issues:** None")
+                st.info(f"**Improved:** {parsed.get('improved', '')}")
+            else:
+                st.code(raw)
+
+            with st.expander("🔬 Execution Trace — structured output"):
+                st.code(f"Raw response:\n{raw[:600]}", language="text")
+                st.caption("In LangChain: .with_structured_output(Pydantic) handles this parsing automatically")
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+# ── TAB: Tools Ecosystem ──────────────────────────────────────────────────────
+with tab_tools:
+    st.markdown("**LangChain Tools Ecosystem — @tool, bind_tools, ToolNode**")
+    st.markdown("""
+The LangChain tools ecosystem standardises tool definition across all frameworks.
+A tool defined with `@tool` works in: LCEL chains, LangGraph ToolNode, LangSmith tracing,
+LangGraph Platform, and any framework that accepts `BaseTool`.
+
+| Phase 1c Raw SDK | LangChain Tools |
+|---|---|
+| `types.FunctionDeclaration(name=..., description=..., parameters=...)` | `@tool` decorator — schema from type hints + docstring |
+| `types.Tool(function_declarations=[fn])` | `llm.bind_tools([tool_fn])` |
+| Manual: `if response.function_calls: dispatch(response.function_calls[0])` | `ToolNode(tools)` handles all dispatch |
+| Tool result as dict in history | `ToolMessage` appended to state automatically |
+| Tracing: custom print statements | LangSmith auto-traces every tool call |
+""")
+    st.code('''
+from langchain_core.tools import tool
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langgraph.prebuilt import ToolNode
+
+# ── Define tools with @tool ───────────────────────────────────────────────────
+@tool
+def search_web(query: str) -> str:
+    """Search the web for current information about a topic."""
+    # type hint (query: str) → parameter schema
+    # docstring → tool description shown to the LLM
+    return f"Search results for: {query}"
+
+@tool
+def calculate(expression: str) -> float:
+    """Evaluate a mathematical expression. Returns a float result."""
+    import ast
+    return float(ast.literal_eval(expression))
+
+@tool
+def get_weather(city: str) -> str:
+    """Get current weather conditions for a city."""
+    import requests
+    r = requests.get(f"https://wttr.in/{city}?format=3")
+    return r.text if r.ok else f"Weather unavailable for {city}"
+
+tools = [search_web, calculate, get_weather]
+
+# ── Bind tools to LLM — same as Phase 1c tool config ─────────────────────────
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
+llm_with_tools = llm.bind_tools(tools)
+# LLM now knows about all 3 tools — will include them in its tool_choice
+
+# ── LCEL chain with tool handling ─────────────────────────────────────────────
+from langchain_core.messages import HumanMessage
+response = llm_with_tools.invoke([HumanMessage(content="What\'s the weather in London?")])
+# response.tool_calls → [{"name": "get_weather", "args": {"city": "London"}}]
+
+# ── ToolNode: dispatch all tool calls automatically ───────────────────────────
+tool_node = ToolNode(tools)
+# Reads response.tool_calls, executes each tool, returns list of ToolMessages
+
+# ── Full agent loop as LCEL ───────────────────────────────────────────────────
+from langchain_core.messages import AIMessage, ToolMessage
+
+def run_agent(query: str) -> str:
+    """Manual ReAct loop — LCEL style (equivalent to Phase 3a)."""
+    messages = [HumanMessage(content=query)]
+    while True:
+        response = llm_with_tools.invoke(messages)
+        messages.append(response)
+        if not response.tool_calls:
+            break                              # no tool call → final answer
+        # Execute tools
+        tool_messages = tool_node.invoke({"messages": messages})["messages"]
+        messages.extend(tool_messages)         # append ToolMessages
+    return messages[-1].content
+''', language="python")
+
+    if st.button("Inspect auto-generated tool schema", key="show_tool_schema"):
+        import utils.tools as t
+        schema = {
+            "name": "get_weather",
+            "description": "Get the current weather for a city. Returns temperature and conditions.",
+            "parameters": {
+                "type": "object",
+                "properties": {"city": {"type": "string", "description": "The city name to get weather for"}},
+                "required": ["city"]
+            },
+            "tool_type": "StructuredTool",
+            "source": "@tool decorator — schema auto-generated from type hints and docstring",
+        }
+        st.json(schema)
+        st.caption("@tool reads `city: str` (type hint) and the docstring to build this schema automatically")
+        st.markdown("""
+**Ecosystem integration:** This same tool object is:
+- Understood by `llm.bind_tools([get_weather])` — LLM knows to call it
+- Dispatched by `ToolNode([get_weather])` in LangGraph
+- Auto-traced by LangSmith (every call logged with args + result)
+- Wrappable by `langchain_mcp_adapters` for MCP servers (Phase 6c connection)
+""")
 
 st.markdown("---")
 st.markdown("### What's next → Phase 10e — Google ADK")

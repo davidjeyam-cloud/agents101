@@ -83,11 +83,14 @@ utils/
   diagrams.py           # Progressive evolution diagrams (matplotlib → PNG → st.image)
                         #   imports _diagram_phase10 via _ph10_diagrams() factory
   _diagram_phase10.py   # Phase 10 diagram functions (LangGraph, LangSmith, LangChain, ADK, Compare)
+                        #   10 functions: workflows, agents, langsmith, langchain, compare, adk,
+                        #   lang_arch_map, langgraph_memory, langgraph_tools_security, langgraph_platform
                         #   Always restart Streamlit after editing this file (module cache)
   styles.py             # Design tokens, apply_theme(), phase_header(), CHART_COLORS, ACCENT_*
                         #   apply_theme() called once from app.py — do NOT add to individual pages
   trace.py              # render_trace() — standardised Execution Trace expander helper
-  quiz.py               # Quiz seed bank (13 phases) + Gemini-powered MCQ generation
+  quiz.py               # Quiz seed bank (16 phases) + Gemini-powered MCQ generation
+                        #   Keys: 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 10b2, 10b3, 10b4, 10e, 10f, 10g
 .streamlit/
   config.toml           # Light theme (F5F7FA background, 1A202C text) — base Streamlit theme
 .claude/
@@ -417,9 +420,12 @@ docs: <what doc was updated>                    ← docs only
 | Page file | Module | Status |
 |---|---|---|
 | `06a_LangGraph_Workflows.py` | LangGraph: Phase 2 workflow patterns as StateGraph — typed state, streaming, persistence | ✅ Complete |
-| `06b_LangGraph_Agents.py` | LangGraph: Phase 3 ReAct/Reflection/Planning + Phase 4 HITL via interrupt_before | ✅ Complete |
-| `06c_LangSmith.py` | LangSmith: Phase 7 observability automated — auto-trace, datasets, eval runs | ✅ Complete |
-| `06d_LangChain.py` | LangChain LCEL: Phase 1 memory + Phase 2a chaining + Phase 5 RAG as pipe syntax | ✅ Complete |
+| `06b_LangGraph_Agents.py` | LangGraph: Phase 3 ReAct/Reflection/Planning + Phase 4 HITL; live Reflection demo; Supervisor Agent; Agent Loop (Ng's 4 patterns) | ✅ Complete |
+| `06a1_LangGraph_Memory.py` | LangGraph Memory: checkpointer hierarchy, thread ID scoping, Memory Store, conv. buffer vs summary | ✅ Complete |
+| `06a2_LangGraph_Tools.py` | LangGraph Tools & Security: @tool decorator, ToolNode, Guard Agent, HITL Command(resume), MCP adapters, structured output | ✅ Complete |
+| `06a3_LangGraph_Platform.py` | LangGraph Platform: draw_mermaid_png(), streaming modes, Studio UI, Deploy/Durable Execution, production checklist | ✅ Complete |
+| `06c_LangSmith.py` | LangSmith: auto-trace, eval runs, Prompt Hub, Alerts & Feedback API, Governance & Audit trails | ✅ Complete |
+| `06d_LangChain.py` | LangChain LCEL: Phase 1 memory + Phase 2a chaining + Phase 5 RAG + structured output + @tool ecosystem | ✅ Complete |
 | `06e_GoogleADK.py` | Google ADK: multi-agent (sequential/parallel/loop) | ✅ Complete |
 | `06g_CrewAI.py` | CrewAI: role-based crews — researcher→writer demo, Process.sequential/hierarchical | ✅ Complete |
 | `06f_Framework_Compare.py` | Framework comparison: LangGraph vs ADK vs CrewAI vs AutoGen vs raw SDK | ✅ Complete |
