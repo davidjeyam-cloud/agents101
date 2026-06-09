@@ -45,6 +45,7 @@ pg = st.navigation({
         st.Page("pages/03c_HITL.py",         title="4b — Human-in-the-Loop"),
         st.Page("pages/03e_LLM_Judge.py",    title="4c — LLM-as-Judge"),
         st.Page("pages/03m_Evals.py",        title="4d — Evaluation Framework"),
+        st.Page("pages/03m2_EvalOps.py",     title="4e — Eval Engineering & Ops"),
     ],
     "Phase 5 — Knowledge & Memory": [
         st.Page("pages/03d_RAG_Agent.py",    title="5a — RAG Agent"),

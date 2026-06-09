@@ -145,13 +145,14 @@ st.markdown("---")
 # ── Interactive demo ──────────────────────────────────────────────────────────
 st.markdown("### Interactive Demo")
 
-tab_compare, tab_setup, tab_eval, tab_hub, tab_alerts, tab_gov = st.tabs([
+tab_compare, tab_setup, tab_eval, tab_hub, tab_alerts, tab_gov, tab_langfuse = st.tabs([
     "Phase 7 vs LangSmith",
     "Setup & Configuration",
     "Evaluation Framework",
     "Prompt Hub",
     "Alerts & Feedback",
     "Governance & Audit",
+    "Langfuse",
 ])
 
 # ── TAB: Compare ─────────────────────────────────────────────────────────────
@@ -571,6 +572,197 @@ os.environ["LANGCHAIN_ENDPOINT"] = "https://langsmith.your-company.com"
         ]
         for item in items:
             st.checkbox(item, key=f"gov_{item[:15]}")
+
+# ── TAB: Langfuse ─────────────────────────────────────────────────────────────
+with tab_langfuse:
+    st.markdown("**Langfuse — open-source, self-hostable LLM observability**")
+    st.markdown(
+        "Langfuse does for any LLM stack what LangSmith does for LangChain. "
+        "It is fully open-source (MIT), self-hostable, and provider-agnostic — "
+        "it works with raw Gemini SDK, OpenAI, Anthropic, or any LangChain/LangGraph chain."
+    )
+
+    st.markdown("""
+| Feature | LangSmith | Langfuse |
+|---|---|---|
+| **Auto-tracing** | LangChain/LangGraph only (3 env vars) | Any LLM via `@observe` decorator or manual SDK |
+| **Hosting** | SaaS (smith.langchain.com) or self-hosted enterprise | Cloud (cloud.langfuse.com) or self-host free (Docker) |
+| **Open source** | No | Yes — MIT licence |
+| **Prompt Hub** | Yes — versioned prompts | Yes — Langfuse Prompt Management |
+| **Evals / scoring** | `evaluate()` + LLM-as-Judge | `langfuse.score()` + Datasets API |
+| **LangGraph integration** | Native (auto-traced) | Via `CallbackHandler` or `@observe` |
+| **Best for** | Teams already on LangChain/LangGraph | Any stack; open-source requirement; self-hosting |
+""")
+
+    st.markdown("#### Setup")
+    st.code('''
+pip install langfuse
+
+# In .env:
+# LANGFUSE_PUBLIC_KEY=pk-lf-...
+# LANGFUSE_SECRET_KEY=sk-lf-...
+# LANGFUSE_HOST=https://cloud.langfuse.com   # or your self-hosted URL
+''', language="bash")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("#### Option 1 — `@observe` decorator (recommended)")
+        st.code('''
+from langfuse.decorators import observe, langfuse_context
+from utils.llm import _client, MODEL
+
+@observe()                           # wraps the function as a Langfuse trace
+def run_agent(question: str) -> str:
+    client = _client()
+    resp = client.models.generate_content(
+        model=MODEL, contents=question
+    )
+    answer = resp.text
+
+    # Score the trace from inside the function
+    langfuse_context.score_current_observation(
+        name="relevance",
+        value=0.9,
+        comment="response is on-topic"
+    )
+    return answer
+
+result = run_agent("What is ReAct?")
+# -> trace appears at cloud.langfuse.com automatically
+''', language="python")
+
+    with col2:
+        st.markdown("#### Option 2 — manual SDK tracing")
+        st.code('''
+from langfuse import Langfuse
+from utils.llm import _client, MODEL
+
+langfuse = Langfuse()   # reads env vars automatically
+
+# Create a trace
+trace = langfuse.trace(
+    name="react-agent-run",
+    user_id="user-123",
+    metadata={"phase": "4e-evalops"},
+)
+
+# Add a span for the LLM call
+span = trace.span(
+    name="llm-call",
+    input={"question": question},
+)
+client = _client()
+resp = client.models.generate_content(model=MODEL, contents=question)
+span.end(output={"answer": resp.text})
+
+# Send an eval score back to the trace
+langfuse.score(
+    trace_id=trace.id,
+    name="correctness",
+    value=0.85,          # 0.0 – 1.0
+    comment="Contains required facts"
+)
+
+langfuse.flush()         # ensure all events are sent before exit
+''', language="python")
+
+    st.markdown("#### LangGraph integration via CallbackHandler")
+    st.code('''
+from langfuse.callback import CallbackHandler
+
+langfuse_handler = CallbackHandler()   # reads LANGFUSE_* env vars
+
+# Pass as callback to any LangGraph invoke / stream call
+result = graph.invoke(
+    {"messages": [("user", query)]},
+    config={"callbacks": [langfuse_handler]},
+)
+# -> every node, LLM call, and tool call is traced automatically
+''', language="python")
+
+    st.markdown("#### Langfuse Datasets — eval loop (equivalent to LangSmith evaluate())")
+    st.code('''
+from langfuse import Langfuse
+
+langfuse = Langfuse()
+
+# Create or get a dataset
+dataset = langfuse.create_dataset(name="agents101-evals")
+
+# Upload golden examples
+langfuse.create_dataset_item(
+    dataset_name="agents101-evals",
+    input={"question": "What is RAG?"},
+    expected_output={"answer": "Retrieve-Augment-Generate"},
+)
+
+# Run agent over the dataset
+for item in langfuse.get_dataset("agents101-evals").items:
+    with item.observe(run_name="gemini-2.5-flash-run-1") as trace_id:
+        answer = run_agent(item.input["question"])   # your @observe-wrapped fn
+        langfuse.score(
+            trace_id=trace_id,
+            name="correctness",
+            value=1.0 if "Retrieve" in answer else 0.0,
+        )
+''', language="python")
+
+    st.markdown("#### Self-hosting Langfuse (free, Docker)")
+    st.code('''
+# docker-compose.yml (minimal)
+# services:
+#   langfuse-server:
+#     image: langfuse/langfuse:latest
+#     ports: ["3000:3000"]
+#     environment:
+#       - DATABASE_URL=postgresql://...
+#       - NEXTAUTH_SECRET=<random>
+#       - SALT=<random>
+#
+# Then in .env:
+# LANGFUSE_HOST=http://localhost:3000
+# LANGFUSE_PUBLIC_KEY=pk-lf-...
+# LANGFUSE_SECRET_KEY=sk-lf-...
+''', language="yaml")
+
+    if os.getenv("LANGFUSE_PUBLIC_KEY"):
+        query_lf = st.text_input("Test query:", value="Explain LLM-as-Judge in one sentence",
+                                 key="lf_query")
+        if st.button("Run & trace with Langfuse", key="run_langfuse"):
+            try:
+                from langfuse.decorators import observe, langfuse_context
+                @observe()
+                def _lf_demo(q):
+                    client = _client()
+                    r = client.models.generate_content(model=MODEL, contents=q)
+                    langfuse_context.score_current_observation(name="auto_score", value=0.9)
+                    return r.text
+                result_lf = _lf_demo(query_lf)
+                st.success(result_lf)
+                st.info("Trace sent to Langfuse — check your dashboard.")
+            except Exception as e:
+                st.error(f"Langfuse error: {e}")
+    else:
+        st.info(
+            "Add `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, and `LANGFUSE_HOST` "
+            "to your `.env` to enable live Langfuse tracing. "
+            "Sign up free at https://cloud.langfuse.com or self-host with Docker."
+        )
+
+    with st.expander("🔬 Execution Trace — Langfuse concept summary"):
+        st.code(
+            "Langfuse vs LangSmith:\n"
+            "  LangSmith  = native LangChain/LangGraph auto-tracing (3 env vars, zero code)\n"
+            "  Langfuse   = any LLM stack, @observe decorator, self-hostable (MIT)\n\n"
+            "Integration points:\n"
+            "  @observe()              — trace any Python function automatically\n"
+            "  CallbackHandler         — LangGraph node-level tracing via callbacks\n"
+            "  langfuse.score()        — push eval scores back to any trace\n"
+            "  Datasets API            — golden dataset + batch eval loop\n"
+            "  Self-host               — full data residency, no SaaS dependency",
+            language="text"
+        )
 
 st.markdown("---")
 st.markdown("### What's next → Phase 10d — LangChain")

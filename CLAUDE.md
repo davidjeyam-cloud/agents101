@@ -91,7 +91,7 @@ utils/
                         #   apply_theme() called once from app.py — do NOT add to individual pages
   trace.py              # render_trace() — standardised Execution Trace expander helper
   quiz.py               # Quiz seed bank (16 phases) + Gemini-powered MCQ generation
-                        #   Keys: 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 10b2, 10b3, 10b4, 10e, 10f, 10g
+                        #   Keys: 0, 1, 2, 3, 4, 4e, 5, 6, 7, 8, 10, 10b2, 10b3, 10b4, 10e, 10f, 10g
 .streamlit/
   config.toml           # Light theme (F5F7FA background, 1A202C text) — base Streamlit theme
 .claude/
@@ -383,6 +383,7 @@ docs: <what doc was updated>                    ← docs only
 | `03c_HITL.py` | Human-in-the-Loop — checkpoint, approve/reject/modify | ✅ Complete |
 | `03e_LLM_Judge.py` | LLM-as-Judge — independent quality gate, PASS/REVIEW/FAIL | ✅ Complete |
 | `03m_Evals.py` | Evaluation Framework — systematic evals, test sets, metrics | ✅ Complete |
+| `03m2_EvalOps.py` | Eval Engineering & Ops — pass@k, deterministic eval, LLM-as-judge at scale, eval ops flywheel, EU AI Act / NIST AI RMF / ISO 42001 | ✅ Complete |
 
 ### Phase 5 — Knowledge & Memory  (augmenting agents with information)
 | Page file | Module | Status |
