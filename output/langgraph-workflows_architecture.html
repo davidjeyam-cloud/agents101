@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LangGraph Workflows — Architecture</title>
+<style>
+  body {
+    margin: 0;
+    padding: 30px;
+    background: #F7F6F2;
+    font-family: Arial, sans-serif;
+    color: #1a1a18;
+  }
+  .wrap { width: 1500px; }
+  table { border-collapse: collapse; }
+
+  /* Header */
+  .h1 { font-size: 28px; font-weight: bold; color: #1a1a18; margin: 0 0 6px 0; }
+  .subtitle { font-size: 14px; color: #6a6860; margin: 0; }
+  .badge {
+    display: inline-block; font-size: 14px; color: #1C3557;
+    background: #EAF2FA; border: 1px solid #8BB5DC;
+    padding: 3px 10px; border-radius: 3px; margin-right: 6px;
+  }
+
+  /* Layer card */
+  .layer {
+    background: #FFFFFF; border: 1px solid #D5D3CC;
+    border-radius: 6px; margin-bottom: 0;
+  }
+  .layer-head { padding: 12px 16px 10px 16px; border-bottom: 1px solid #E5E3DC; }
+  .lnum { font-size: 26px; font-weight: bold; opacity: 0.6; }
+  .lname { font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+  .lsub { font-size: 12.5px; font-style: italic; color: #6a6860; margin-top: 3px; }
+  .seclabel {
+    font-size: 12.5px; text-transform: uppercase; color: #9a9890;
+    letter-spacing: 0.4px; padding: 8px 16px 4px 16px; font-weight: bold;
+  }
+
+  /* Component boxes */
+  .compwrap { padding: 4px 12px 12px 12px; }
+  .comp {
+    border-radius: 5px; padding: 9px 11px; vertical-align: top;
+    background: #F2F1EC; border: 1px solid #D5D3CC;
+  }
+  .comp-blue { background: #EAF2FA; border: 1px solid #8BB5DC; }
+  .comp-green { background: #E6F5EE; border: 1px solid #7DC4A0; }
+  .comp-orange { background: #FEF2E3; border: 1px solid #F0B462; }
+  .ctitle { font-size: 14px; font-weight: bold; margin-bottom: 6px; }
+  .cbul { font-size: 12.5px; color: #2a2a26; line-height: 1.45; }
+  .cbul .b { color: #9a9890; margin-right: 4px; }
+  .tag {
+    display: inline-block; font-size: 11.5px; font-family: "Courier New", monospace;
+    background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.12);
+    padding: 1px 6px; border-radius: 3px; margin-top: 5px;
+  }
+
+  /* Flow bar */
+  .flowbar {
+    margin: 0 12px 12px 12px; background: #F2F1EC;
+    border: 1px solid #D5D3CC; border-radius: 5px; padding: 8px 10px;
+  }
+  .flowlabel {
+    font-size: 12.5px; font-weight: bold; text-transform: uppercase;
+    color: #9a9890; margin-right: 8px;
+  }
+  .flowpill {
+    display: inline-block; font-size: 12.5px;
+    background: #FFFFFF; border: 1px solid #C9C7C0;
+    padding: 2px 9px; border-radius: 12px; margin: 2px 1px;
+  }
+  .flowarrow { font-size: 12.5px; color: #9a9890; margin: 0 2px; }
+
+  /* Connector */
+  .connector { text-align: center; font-size: 18px; color: #B8B6AE; line-height: 1; padding: 5px 0; }
+
+  /* Side panels */
+  .panel { background: #FFFFFF; border: 1px solid #D5D3CC; border-radius: 6px; margin-bottom: 14px; overflow: hidden; }
+  .phead {
+    font-size: 13.5px; font-weight: bold; text-transform: uppercase;
+    color: #FFFFFF; padding: 9px 13px; letter-spacing: 0.5px;
+  }
+  .pbody { padding: 6px 13px 11px 13px; }
+  .sitem { padding: 7px 0; border-bottom: 1px solid #EEEDE7; }
+  .sitem:last-child { border-bottom: none; }
+  .sicon { color: #1C3557; font-weight: bold; margin-right: 6px; }
+  .stitle { font-size: 13px; font-weight: bold; }
+  .ssub { font-size: 11.5px; color: #6a6860; margin-top: 2px; }
+
+  /* Execution loop card */
+  .loopcard { background: #FFFFFF; border: 1px solid #D5D3CC; border-radius: 6px; padding: 13px; margin-bottom: 14px; }
+  .looptitle { font-size: 13px; font-weight: bold; margin-bottom: 10px; }
+  .loopstep {
+    font-size: 12.5px; font-weight: bold; padding: 7px 10px; margin-bottom: 7px;
+    background: #F2F1EC; border-left: 4px solid #1C3557; border-radius: 3px;
+  }
+  .loopnote { font-size: 11.5px; color: #6a6860; margin-top: 8px; }
+  .loopnote .la { font-size: 16px; color: #B05C10; margin-right: 5px; }
+
+  /* Bottom bar */
+  .bottombar { background: #1C3557; border-radius: 6px; padding: 14px 18px; margin-top: 4px; }
+  .bblabel {
+    font-size: 14px; font-weight: bold; text-transform: uppercase;
+    color: #9DBDE0; letter-spacing: 0.6px; margin-right: 10px;
+  }
+  .bpill {
+    display: inline-block; font-size: 12px; color: #EAF2FA;
+    background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.25);
+    padding: 3px 10px; border-radius: 12px; margin: 3px 2px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== Header ===== -->
+  <table width="1500"><tr><td>
+    <div class="h1">LangGraph Workflows &#8594; The 5 Phase 2 Patterns as Graph Topologies</div>
+    <div class="subtitle">
+      <span class="badge">Phase 10a</span>
+      <span class="badge">StateGraph</span>
+      Every workflow pattern you built by hand in Phase 2 is just a different graph topology in LangGraph &#8212; same logic, declared not coded.
+    </div>
+  </td></tr></table>
+
+  <table width="1500" style="margin-top:18px;"><tr>
+
+    <!-- ================= LEFT COLUMN (1130px) ================= -->
+    <td width="1130" valign="top" style="padding-right:20px;">
+
+      <!-- ===== LAYER 01 — Prompt Chaining ===== -->
+      <div class="layer">
+        <div class="layer-head">
+          <table width="100%"><tr>
+            <td width="55" valign="top"><span class="lnum" style="color:#1C3557;">01</span></td>
+            <td valign="top">
+              <span class="lname" style="color:#1C3557;">Prompt Chaining</span>
+              <div class="lsub">Phase 2a &#8594; LINEAR graph: A &#8594; B &#8594; C &#8594; D</div>
+            </td>
+          </tr></table>
+        </div>
+        <div class="seclabel">What changes: manual dict-passing becomes typed StateGraph state</div>
+        <div class="compwrap">
+          <table width="100%" cellspacing="8"><tr>
+            <td width="25%" class="comp comp-blue">
+              <div class="ctitle">Phase 2a (raw)</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>steps = [fn_a, fn_b, fn_c]</div>
+                <div><span class="b">&#9656;</span>manual dict, out = step(out)</div>
+                <div><span class="b">&#9656;</span>no type safety, silent KeyError</div>
+                <div><span class="b">&#9656;</span>restart loses all state</div>
+              </div>
+              <span class="tag">imperative</span>
+            </td>
+            <td width="25%" class="comp comp-blue">
+              <div class="ctitle">StateGraph declaration</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>builder = StateGraph(State)</div>
+                <div><span class="b">&#9656;</span>State is a TypedDict</div>
+                <div><span class="b">&#9656;</span>fields typed with Annotated</div>
+                <div><span class="b">&#9656;</span>compile-time shape checking</div>
+              </div>
+              <span class="tag">TypedDict</span>
+            </td>
+            <td width="25%" class="comp comp-blue">
+              <div class="ctitle">Linear graph topology</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>add_node("A", fn_a)</div>
+                <div><span class="b">&#9656;</span>add_edge("A", "B")</div>
+                <div><span class="b">&#9656;</span>add_edge("B", "C")</div>
+                <div><span class="b">&#9656;</span>START &#8594; A &#8594; B &#8594; C &#8594; END</div>
+              </div>
+              <span class="tag">add_edge</span>
+            </td>
+            <td width="25%" class="comp comp-blue">
+              <div class="ctitle">What you get free</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>streaming per node</div>
+                <div><span class="b">&#9656;</span>checkpointing after each node</div>
+                <div><span class="b">&#9656;</span>state snapshot + time-travel</div>
+                <div><span class="b">&#9656;</span>resume after crash</div>
+              </div>
+              <span class="tag">free</span>
+            </td>
+          </tr></table>
+        </div>
+        <div class="flowbar">
+          <span class="flowlabel">Flow</span>
+          <span class="flowpill">Phase 2a manual</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">StateGraph(State)</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">add_node / add_edge</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">graph.compile()</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">graph.stream()</span>
+        </div>
+      </div>
+
+      <div class="connector">&#8595;</div>
+
+      <!-- ===== LAYER 02 — Routing ===== -->
+      <div class="layer">
+        <div class="layer-head">
+          <table width="100%"><tr>
+            <td width="55" valign="top"><span class="lnum" style="color:#0F5C3A;">02</span></td>
+            <td valign="top">
+              <span class="lname" style="color:#0F5C3A;">Routing</span>
+              <div class="lsub">Phase 2b &#8594; CONDITIONAL edges: classify then branch</div>
+            </td>
+          </tr></table>
+        </div>
+        <div class="seclabel">What changes: if/elif block becomes add_conditional_edges</div>
+        <div class="compwrap">
+          <table width="100%" cellspacing="8"><tr>
+            <td width="25%" class="comp comp-green">
+              <div class="ctitle">Phase 2b (raw)</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>route = classify(input)</div>
+                <div><span class="b">&#9656;</span>if route == 'A': fn_a(...)</div>
+                <div><span class="b">&#9656;</span>elif route == 'B': fn_b(...)</div>
+                <div><span class="b">&#9656;</span>logic buried in Python</div>
+              </div>
+              <span class="tag">if/elif</span>
+            </td>
+            <td width="25%" class="comp comp-green">
+              <div class="ctitle">Conditional edge</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>add_conditional_edges(</div>
+                <div style="padding-left:12px;">"router", route_fn,</div>
+                <div style="padding-left:12px;">{"A":"node_a","B":"node_b", END:END})</div>
+                <div><span class="b">&#9656;</span>routing declared, not coded</div>
+                <div><span class="b">&#9656;</span>graph renders it visually</div>
+              </div>
+              <span class="tag">conditional_edges</span>
+            </td>
+            <td width="25%" class="comp comp-green">
+              <div class="ctitle">route_fn signature</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>def route_fn(state) -&gt;</div>
+                <div style="padding-left:12px;">Literal["node_a","node_b"]</div>
+                <div><span class="b">&#9656;</span>return value is next node name</div>
+                <div><span class="b">&#9656;</span>type-checked at compile time</div>
+              </div>
+              <span class="tag">Literal[...]</span>
+            </td>
+            <td width="25%" class="comp comp-green">
+              <div class="ctitle">What you get free</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>draw_mermaid_png() shows branches</div>
+                <div><span class="b">&#9656;</span>routing is auditable</div>
+                <div><span class="b">&#9656;</span>add new branch = one dict entry</div>
+              </div>
+              <span class="tag">free</span>
+            </td>
+          </tr></table>
+        </div>
+        <div class="flowbar">
+          <span class="flowlabel">Flow</span>
+          <span class="flowpill">input</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">router node</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">route_fn(state)</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">conditional edge</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">node_a or node_b</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">END</span>
+        </div>
+      </div>
+
+      <div class="connector">&#8595;</div>
+
+      <!-- ===== LAYER 03 — Parallelization ===== -->
+      <div class="layer">
+        <div class="layer-head">
+          <table width="100%"><tr>
+            <td width="55" valign="top"><span class="lnum" style="color:#B05C10;">03</span></td>
+            <td valign="top">
+              <span class="lname" style="color:#B05C10;">Parallelization</span>
+              <div class="lsub">Phase 2c &#8594; PARALLEL branches: fan-out then merge</div>
+            </td>
+          </tr></table>
+        </div>
+        <div class="seclabel">What changes: ThreadPoolExecutor becomes graph topology</div>
+        <div class="compwrap">
+          <table width="100%" cellspacing="8"><tr>
+            <td width="25%" class="comp comp-orange">
+              <div class="ctitle">Phase 2b (raw)</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>with ThreadPoolExecutor() as ex:</div>
+                <div><span class="b">&#9656;</span>futures = [ex.submit(fn, x) ...]</div>
+                <div><span class="b">&#9656;</span>manual merge, errors, timeout</div>
+                <div><span class="b">&#9656;</span>no streaming mid-run</div>
+              </div>
+              <span class="tag">ThreadPoolExecutor</span>
+            </td>
+            <td width="25%" class="comp comp-orange">
+              <div class="ctitle">Fan-out topology</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>add_edge(START, "worker_a")</div>
+                <div><span class="b">&#9656;</span>add_edge(START, "worker_b")</div>
+                <div><span class="b">&#9656;</span>add_edge(START, "worker_c")</div>
+                <div><span class="b">&#9656;</span>all run in parallel automatically</div>
+              </div>
+              <span class="tag">fan-out</span>
+            </td>
+            <td width="25%" class="comp comp-orange">
+              <div class="ctitle">Merge node</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>aggregator runs after all branches</div>
+                <div><span class="b">&#9656;</span>state["results"] has all outputs</div>
+                <div><span class="b">&#9656;</span>Annotated[list, operator.add]</div>
+                <div style="padding-left:12px;">merges lists</div>
+              </div>
+              <span class="tag">reducer</span>
+            </td>
+            <td width="25%" class="comp comp-orange">
+              <div class="ctitle">What you get free</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>no ThreadPoolExecutor</div>
+                <div><span class="b">&#9656;</span>error in one branch visible in state</div>
+                <div><span class="b">&#9656;</span>add a branch = one add_edge(</div>
+                <div style="padding-left:12px;">START, "new_worker") line</div>
+              </div>
+              <span class="tag">free</span>
+            </td>
+          </tr></table>
+        </div>
+        <div class="flowbar">
+          <span class="flowlabel">Flow</span>
+          <span class="flowpill">START</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">worker_a &#124;&#124; worker_b &#124;&#124; worker_c</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">merge node</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">END</span>
+        </div>
+      </div>
+
+      <div class="connector">&#8595;</div>
+
+      <!-- ===== LAYER 04 — Orchestrator-Workers ===== -->
+      <div class="layer">
+        <div class="layer-head">
+          <table width="100%"><tr>
+            <td width="55" valign="top"><span class="lnum" style="color:#5A3A8C;">04</span></td>
+            <td valign="top">
+              <span class="lname" style="color:#5A3A8C;">Orchestrator-Workers</span>
+              <div class="lsub">Phase 2d &#8594; SUPERVISOR + subgraph workers</div>
+            </td>
+          </tr></table>
+        </div>
+        <div class="seclabel">What changes: orchestrator loop becomes Supervisor node routing to subgraphs</div>
+        <div class="compwrap">
+          <table width="100%" cellspacing="8"><tr>
+            <td width="25%" class="comp comp-blue">
+              <div class="ctitle">Phase 2d (raw)</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>plan = orchestrator(input)</div>
+                <div><span class="b">&#9656;</span>for task in plan:</div>
+                <div style="padding-left:12px;">result = worker(task)</div>
+                <div><span class="b">&#9656;</span>manual loop, result tracking</div>
+                <div><span class="b">&#9656;</span>no persistence between tasks</div>
+              </div>
+              <span class="tag">for-loop</span>
+            </td>
+            <td width="25%" class="comp comp-green">
+              <div class="ctitle">Supervisor node</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>supervisor_fn reads state,</div>
+                <div style="padding-left:12px;">decides next worker</div>
+                <div><span class="b">&#9656;</span>returns Command(goto="worker_a")</div>
+                <div style="padding-left:12px;">or Command(goto=END)</div>
+                <div><span class="b">&#9656;</span>replaces the orchestrator loop</div>
+              </div>
+              <span class="tag">Command</span>
+            </td>
+            <td width="25%" class="comp comp-blue">
+              <div class="ctitle">Worker subgraphs</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>each worker is its own StateGraph</div>
+                <div><span class="b">&#9656;</span>nested inside the parent graph</div>
+                <div><span class="b">&#9656;</span>add_node("worker_a",</div>
+                <div style="padding-left:12px;">worker_a_graph.compile())</div>
+                <div><span class="b">&#9656;</span>xray=True to inspect</div>
+              </div>
+              <span class="tag">subgraph</span>
+            </td>
+            <td width="25%" class="comp comp-green">
+              <div class="ctitle">What you get free</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>supervisor logic is declarative</div>
+                <div><span class="b">&#9656;</span>checkpointing between worker calls</div>
+                <div><span class="b">&#9656;</span>HITL can interrupt before any worker</div>
+                <div><span class="b">&#9656;</span>full trace in LangSmith</div>
+              </div>
+              <span class="tag">free</span>
+            </td>
+          </tr></table>
+        </div>
+        <div class="flowbar">
+          <span class="flowlabel">Flow</span>
+          <span class="flowpill">supervisor</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">Command(goto="worker")</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">worker subgraph</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">supervisor</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">Command(goto=END)</span>
+        </div>
+      </div>
+
+      <div class="connector">&#8595;</div>
+
+      <!-- ===== LAYER 05 — Evaluator-Optimizer ===== -->
+      <div class="layer">
+        <div class="layer-head">
+          <table width="100%"><tr>
+            <td width="55" valign="top"><span class="lnum" style="color:#2E4D7A;">05</span></td>
+            <td valign="top">
+              <span class="lname" style="color:#2E4D7A;">Evaluator-Optimizer</span>
+              <div class="lsub">Phase 2e &#8594; CYCLE with conditional loop-back (Andrew Ng Pattern 1)</div>
+            </td>
+          </tr></table>
+        </div>
+        <div class="seclabel">What changes: while loop becomes a cycle edge &#8212; back-edge IS the reflection pattern</div>
+        <div class="compwrap">
+          <table width="100%" cellspacing="8"><tr>
+            <td width="25%" class="comp comp-orange">
+              <div class="ctitle">Phase 2e (raw)</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>while iteration &lt; MAX:</div>
+                <div><span class="b">&#9656;</span>out = generator(prompt)</div>
+                <div><span class="b">&#9656;</span>score = evaluator(out)</div>
+                <div><span class="b">&#9656;</span>if score &gt;= threshold: break</div>
+                <div><span class="b">&#9656;</span>no streaming, no checkpoint</div>
+              </div>
+              <span class="tag">while-loop</span>
+            </td>
+            <td width="25%" class="comp comp-orange">
+              <div class="ctitle">Cycle topology</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>add_edge("generate", "evaluate")</div>
+                <div><span class="b">&#9656;</span>add_conditional_edges("evaluate",</div>
+                <div style="padding-left:12px;">route_eval,</div>
+                <div style="padding-left:12px;">{"generate":"generate", END:END})</div>
+                <div><span class="b">&#9656;</span>the back-edge creates the loop</div>
+              </div>
+              <span class="tag">cycle</span>
+            </td>
+            <td width="25%" class="comp comp-orange">
+              <div class="ctitle">route_eval function</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>def route_eval(state) -&gt;</div>
+                <div style="padding-left:12px;">Literal["generate", END]:</div>
+                <div><span class="b">&#9656;</span>return END if</div>
+                <div style="padding-left:12px;">state["score"] &gt;= 7 else "generate"</div>
+                <div><span class="b">&#9656;</span>threshold explicit and auditable</div>
+              </div>
+              <span class="tag">route_eval</span>
+            </td>
+            <td width="25%" class="comp comp-orange">
+              <div class="ctitle">What you get free</div>
+              <div class="cbul">
+                <div><span class="b">&#9656;</span>loop visualised by draw_mermaid_png()</div>
+                <div><span class="b">&#9656;</span>checkpoint after every iteration</div>
+                <div><span class="b">&#9656;</span>max_iterations via recursion_limit</div>
+                <div><span class="b">&#9656;</span>SAME PATTERN as Phase 3f Reflection</div>
+              </div>
+              <span class="tag">free</span>
+            </td>
+          </tr></table>
+        </div>
+        <div class="flowbar">
+          <span class="flowlabel">Flow</span>
+          <span class="flowpill">generate</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">evaluate</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">score &gt;= threshold?</span><span class="flowarrow">&#8594;</span>
+          <span class="flowpill">END or &#8635; generate</span>
+        </div>
+      </div>
+
+    </td>
+
+    <!-- ================= RIGHT COLUMN (320px) ================= -->
+    <td width="320" valign="top">
+
+      <!-- Panel 1 — Phase Cross-Refs -->
+      <div class="panel">
+        <div class="phead" style="background:#1C3557;">Phase Cross-Refs</div>
+        <div class="pbody">
+          <div class="sitem">
+            <div class="stitle"><span class="sicon">&#8594;</span>Phase 2a &#8594; Chaining</div>
+            <div class="ssub">StateGraph linear topology: A &#8594; B &#8594; C</div>
+          </div>
+          <div class="sitem">
+            <div class="stitle"><span class="sicon">&#8594;</span>Phase 2b &#8594; Routing</div>
+            <div class="ssub">conditional_edges replace if/elif routing block</div>
+          </div>
+          <div class="sitem">
+            <div class="stitle"><span class="sicon">&#8594;</span>Phase 2c &#8594; Parallel</div>
+            <div class="ssub">fan-out from START node, merge node aggregates</div>
+          </div>
+          <div class="sitem">
+            <div class="stitle"><span class="sicon">&#8594;</span>Phase 2d &#8594; Orchestrator</div>
+            <div class="ssub">Supervisor + Command() replaces the planning loop</div>
+          </div>
+          <div class="sitem">
+            <div class="stitle"><span class="sicon">&#8594;</span>Phase 2e &#8594; Evaluator</div>
+            <div class="ssub">cycle back-edge IS the evaluator-optimizer loop</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 2 — LangGraph Gains -->
+      <div class="panel">
+        <div class="phead" style="background:#8B1A1A;">LangGraph Gains</div>
+        <div class="pbody">
+          <div class="sitem">
+            <div class="stitle"><span class="sicon" style="color:#8B1A1A;">&#9650;</span>Typed state everywhere</div>
+            <div class="ssub">TypedDict catches KeyError at compile, not runtime</div>
+          </div>
+          <div class="sitem">
+            <div class="stitle"><span class="sicon" style="color:#8B1A1A;">&#9650;</span>Topology is declared</div>
+            <div class="ssub">draw_mermaid_png() renders any graph from source</div>
+          </div>
+          <div class="sitem">
+            <div class="stitle"><span class="sicon" style="color:#8B1A1A;">&#9650;</span>Streaming per node</div>
+            <div class="ssub">graph.stream() yields state after each node completes</div>
+          </div>
+          <div class="sitem">
+            <div class="stitle"><span class="sicon" style="color:#8B1A1A;">&#9650;</span>Persistence is automatic</div>
+            <div class="ssub">checkpointer snapshots after every node, resume after crash</div>
+          </div>
+          <div class="sitem">
+            <div class="stitle"><span class="sicon" style="color:#8B1A1A;">&#9650;</span>HITL in 2 lines</div>
+            <div class="ssub">interrupt_before=[...] pauses any node for human approval</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 3 — Execution Loop card -->
+      <div class="loopcard">
+        <div class="looptitle">StateGraph Execution &#8212; same for all 5 patterns</div>
+        <div class="loopstep" style="border-left-color:#1C3557;">COMPILE &#8212; builder.compile(checkpointer)</div>
+        <div class="loopstep" style="border-left-color:#0F5C3A;">INVOKE &#8212; graph.stream(input, config)</div>
+        <div class="loopstep" style="border-left-color:#B05C10;">NODE runs &#8212; state flows through typed fields</div>
+        <div class="loopstep" style="border-left-color:#5A3A8C;">EDGE routes &#8212; conditional or fixed, declared not coded</div>
+        <div class="loopstep" style="border-left-color:#2E4D7A;">CHECKPOINT &#8212; state snapshot saved after every node</div>
+        <div class="loopnote"><span class="la">&#8635;</span>repeats until END node reached</div>
+      </div>
+
+    </td>
+  </tr></table>
+
+  <!-- ===== Bottom bar ===== -->
+  <table width="1500"><tr><td>
+    <div class="bottombar">
+      <span class="bblabel">Replaces</span>
+      <span class="bpill">manual dict-passing</span>
+      <span class="bpill">ThreadPoolExecutor boilerplate</span>
+      <span class="bpill">while-loop orchestrators</span>
+      <span class="bpill">ad-hoc routing if/elif</span>
+      <span class="bpill">hand-rolled evaluator loops</span>
+      <span class="bpill">no-streaming batch runs</span>
+      <span class="bpill">print()-based debugging</span>
+      <span class="bpill">restart-from-scratch on crash</span>
+    </div>
+  </td></tr></table>
+
+</div>
+</body>
+</html>

@@ -12,76 +12,13 @@ from matplotlib.patches import FancyBboxPatch
 
 def _ph10_diagrams(C, W, H, _fig, _box, _arrow, _agent_banner, _journey_bar,
                    _agent_def_footer, _to_bytes):
-    """Returns (diagram_langgraph_workflows, diagram_google_adk, diagram_lang_arch_map).
+    """Returns (diagram_google_adk, diagram_lang_arch_map).
 
+    diagram_langgraph_workflows was replaced by a static arch-diagram-skill JPEG in
+    docs/images/arch_langgraph_workflows.jpg — see page 06a_LangGraph_Workflows.py.
     diagram_langgraph_agents / _memory / _tools_security / _platform / diagram_langsmith /
-    diagram_langchain / diagram_framework_compare were replaced by static
-    arch-diagram-skill JPEGs in docs/images/arch_*.jpg —
+    diagram_langchain / diagram_framework_compare were also replaced by static JPEGs —
     see pages 06b, 06a1, 06a2, 06a3, 06c, 06d, 06f."""
-
-    def diagram_langgraph_workflows() -> bytes:
-        fig, axes = plt.subplots(1, 2, figsize=(13, 5.2))
-        fig.patch.set_facecolor(C["bg"])
-
-        def bx(ax, cx, cy, w, h, lines, fc, fs=8):
-            p = FancyBboxPatch((cx-w/2, cy-h/2), w, h, boxstyle="round,pad=0.08",
-                               facecolor=fc, edgecolor="white", linewidth=2, zorder=3)
-            ax.add_patch(p)
-            ax.text(cx, cy, "\n".join(lines), ha="center", va="center", fontsize=fs,
-                    color="white", fontweight="bold", zorder=4,
-                    multialignment="center", linespacing=1.3)
-
-        def ar(ax, x1, y1, x2, y2, lbl=""):
-            ax.annotate("", xy=(x2, y2), xytext=(x1, y1),
-                        arrowprops=dict(arrowstyle="-|>", color=C["arrow"], lw=1.6,
-                                        mutation_scale=12), zorder=5)
-            if lbl:
-                ax.text((x1+x2)/2+0.08, (y1+y2)/2, lbl, fontsize=6.5,
-                        color=C["arrow"], style="italic")
-
-        for ax in axes:
-            ax.set_xlim(0, 5); ax.set_ylim(0, 5.2); ax.axis("off")
-            ax.set_facecolor(C["bg"])
-
-        ax = axes[0]
-        ax.add_patch(FancyBboxPatch((0, 4.8), 5, 0.38, boxstyle="round,pad=0.05",
-                                    facecolor=C["dim"], edgecolor="white", lw=1.5, zorder=2))
-        ax.text(2.5, 4.99, "What you built in Phase 2 (raw Python)", ha="center", va="center",
-                fontsize=9, color="white", fontweight="bold")
-        bx(ax, 2.5, 4.22, 3.6, 0.44, ["task = classify(input)"], C["input"])
-        ar(ax, 2.5, 4.0, 2.5, 3.60)
-        bx(ax, 2.5, 3.30, 3.6, 0.44, ["out1 = llm(step1_prompt)"], C["llm"])
-        ar(ax, 2.5, 3.08, 2.5, 2.68)
-        bx(ax, 2.5, 2.38, 3.6, 0.44, ["out2 = llm(step2_prompt + out1)"], C["memory"])
-        ar(ax, 2.5, 2.16, 2.5, 1.76)
-        bx(ax, 2.5, 1.46, 3.6, 0.44, ["out3 = llm(step3_prompt + out2)"], C["tools"])
-        ar(ax, 2.5, 1.24, 2.5, 0.84)
-        bx(ax, 2.5, 0.54, 3.0, 0.40, ["return out3"], C["output"])
-        ax.text(2.5, 0.1, "manual dict-passing  |  no typed state  |  no streaming",
-                ha="center", fontsize=6.5, color=C["dim"], style="italic")
-
-        ax = axes[1]
-        ax.add_patch(FancyBboxPatch((0, 4.8), 5, 0.38, boxstyle="round,pad=0.05",
-                                    facecolor=C["agent_yes"], edgecolor="white", lw=1.5, zorder=2))
-        ax.text(2.5, 4.99, "LangGraph — same logic, better plumbing", ha="center", va="center",
-                fontsize=9, color="white", fontweight="bold")
-        bx(ax, 2.5, 4.22, 3.8, 0.44, ["graph = StateGraph(State)"], C["input"])
-        ar(ax, 2.5, 4.0, 2.5, 3.60)
-        bx(ax, 2.5, 3.30, 3.8, 0.52, ["node_A   graph.add_node('A', fn_A)"], C["llm"])
-        ar(ax, 2.5, 3.04, 2.5, 2.64)
-        bx(ax, 2.5, 2.34, 3.8, 0.52, ["node_B   graph.add_edge('A','B')"], C["memory"])
-        ar(ax, 2.5, 2.08, 2.5, 1.68)
-        bx(ax, 2.5, 1.38, 3.8, 0.52, ["node_C   graph.add_edge('B','C')"], C["tools"])
-        ar(ax, 2.5, 1.12, 2.5, 0.72)
-        bx(ax, 2.5, 0.44, 3.8, 0.44, ["compiled = graph.compile(checkpointer)"], C["agent_yes"])
-        ax.text(2.5, 0.05, "typed state  |  streaming  |  persistence  |  HITL-ready",
-                ha="center", fontsize=6.5, color=C["agent_yes"], style="italic")
-
-        buf = io.BytesIO()
-        fig.savefig(buf, format="png", dpi=150, bbox_inches="tight",
-                    facecolor=fig.get_facecolor())
-        buf.seek(0); plt.close(fig)
-        return buf.getvalue()
 
     def diagram_google_adk() -> bytes:
         """
@@ -411,4 +348,4 @@ def _ph10_diagrams(C, W, H, _fig, _box, _arrow, _agent_banner, _journey_bar,
         buf.seek(0); plt.close(fig)
         return buf.getvalue()
 
-    return (diagram_langgraph_workflows, diagram_google_adk, diagram_lang_arch_map)
+    return (diagram_google_adk, diagram_lang_arch_map)

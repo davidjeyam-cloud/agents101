@@ -19,7 +19,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-from utils.diagrams import diagram_langgraph_workflows, diagram_lang_arch_map
+from utils.diagrams import diagram_lang_arch_map
 from utils.llm import MODEL, _client
 
 # ── Title ─────────────────────────────────────────────────────────────────────
@@ -53,8 +53,8 @@ Phase 10 shows you the same patterns expressed through the LangChain/LangGraph f
 """)
 
 # ── Diagram ───────────────────────────────────────────────────────────────────
-st.image(diagram_langgraph_workflows(),
-         caption="Left: the raw Python you wrote in Phase 2. Right: LangGraph doing the same thing.",
+st.image("docs/images/arch_langgraph_workflows.jpg",
+         caption="Phase 2's 5 workflow patterns mapped to their LangGraph StateGraph equivalents.",
          use_container_width=True)
 
 st.markdown(
