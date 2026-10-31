@@ -67,7 +67,7 @@ response = client.models.generate_content(
     model=MODEL,
     contents=[
         types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
-        types.Part.from_text("What does this chart show?"),
+        types.Part.from_text(text="What does this chart show?"),
     ]
 )
 ```
@@ -205,7 +205,7 @@ with tab_qa:
                     model=MODEL,
                     contents=[
                         types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
-                        types.Part.from_text(question),
+                        types.Part.from_text(text=question),
                     ],
                     config=types.GenerateContentConfig(system_instruction=system),
                 )
@@ -271,7 +271,7 @@ with tab_extract:
                     model=MODEL,
                     contents=[
                         types.Part.from_bytes(data=doc_bytes, mime_type=doc_mime),
-                        types.Part.from_text(extract_prompt),
+                        types.Part.from_text(text=extract_prompt),
                     ],
                     config=types.GenerateContentConfig(response_mime_type="application/json"),
                 )
@@ -331,7 +331,7 @@ with tab_compare:
                     model=MODEL,
                     contents=[
                         types.Part.from_bytes(data=chart_bytes, mime_type=chart_mime),
-                        types.Part.from_text(final_chart_q),
+                        types.Part.from_text(text=final_chart_q),
                     ],
                     config=types.GenerateContentConfig(system_instruction=system_chart),
                 )
